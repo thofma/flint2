@@ -84,7 +84,7 @@ main(void)
 
         fmpq_poly_resultant(y, f, g);
         
-        flint_printf("y: "), fmpq_print(y), flint_printf("\n");
+        flint_printf("res(f, g): "), fmpq_print(y), flint_printf("\n");
 
         if (!fmpz_is_one(fmpq_denref(y)))
         {
@@ -106,14 +106,7 @@ main(void)
             abort();
         }
 
-        flint_printf("y: "), fmpq_print(y), flint_printf("\n");
-
         fmpq_mul(y, y, z);
-
-        flint_printf("y: "), fmpq_print(y), flint_printf("\n");
-        
-        /* y is the correct value we want to compute.
-         * Get the number of bits and add some random value. */
 
         if (!fmpz_is_one(fmpq_denref(y)))
         {
@@ -134,7 +127,7 @@ main(void)
         fmpq_poly_resultant(zz, f, g);
 
         flint_printf("res(f h, g) = "), fmpq_print(zz), flint_printf("\n\n");
-        fmpq_poly_resultant_div(x, f, g, fmpq_numref(z), nbits);
+        fmpq_poly_resultant_div(x, f, g, fmpq_numref(z), nbits + 1);
 
         result = fmpq_equal(x, y);
         
@@ -144,9 +137,14 @@ main(void)
             flint_printf("f = "), fmpq_poly_print_pretty(f, "x"), flint_printf("\n\n");
             flint_printf("g = "), fmpq_poly_print_pretty(g, "x"), flint_printf("\n\n");
             flint_printf("x = "), fmpq_print(x), flint_printf("\n\n");
-            flint_printf("nbits = %wu\n\n");
-            flint_printf("div = "), fmpq_print(z), flint_printf("\n\n");
+            flint_printf("zz = "), fmpq_print(zz), flint_printf("\n\n");
+            flint_printf("z = "), fmpq_print(z), flint_printf("\n\n");
+            flint_printf("nbits = %wd\n\n", nbits);
+            flint_printf("div = "), fmpz_print(fmpq_numref(z)), flint_printf("\n\n");
             flint_printf("y = "), fmpq_print(y), flint_printf("\n\n");
+            _fmpz_poly_resultant_modular_div(den, fmpq_poly_numref(f), fmpq_poly_degree(f), fmpq_poly_numref(g), fmpq_poly_degree(g), fmpq_numref(z), nbits + 1);
+            flint_printf("over Z = "), fmpz_print(den), flint_printf("\n\n");
+
             abort();
         }
         
