@@ -464,7 +464,10 @@ FLINT_DLL void fmpz_mat_hnf_minors_transform(fmpz_mat_t H, fmpz_mat_t U, const f
 FLINT_DLL void fmpz_mat_hnf_modular(fmpz_mat_t H, const fmpz_mat_t A, const fmpz_t D);
 FLINT_DLL void fmpz_mat_hnf_modular_eldiv(fmpz_mat_t A, const fmpz_t D);
 FLINT_DLL void fmpz_mat_hnf_pernet_stein(fmpz_mat_t H, const fmpz_mat_t A, flint_rand_t state);
+FLINT_DLL void fmpz_mat_hnf_storjohann(fmpz_mat_t H, const fmpz_mat_t A);
 FLINT_DLL int fmpz_mat_is_in_hnf(const fmpz_mat_t A);
+FLINT_DLL slong _conditioning(fmpz_mat_t T, slong row, slong col1);
+FLINT_DLL void _column_reduction(fmpz_mat_t T, slong row, slong col1, slong col2);
 
 FLINT_DLL void fmpz_mat_snf(fmpz_mat_t S, const fmpz_mat_t A);
 FLINT_DLL void fmpz_mat_snf_diagonal(fmpz_mat_t S, const fmpz_mat_t A);
