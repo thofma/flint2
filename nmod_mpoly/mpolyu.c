@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "nmod_mpoly.h"
@@ -146,7 +146,9 @@ nmod_mpoly_struct * _nmod_mpolyu_get_coeff(nmod_mpolyu_t A,
 typedef struct
 {
     volatile slong index;
+#if HAVE_PTHREAD
     pthread_mutex_t mutex;
+#endif
     slong length;
     nmod_mpoly_struct * coeffs;
     const nmod_mpoly_ctx_struct * ctx;
@@ -163,10 +165,14 @@ static void _worker_sort(void * varg)
 
 get_next_index:
 
+#if HAVE_PTHREAD
     pthread_mutex_lock(&arg->mutex);
+#endif
     i = arg->index;
     arg->index++;
+#if HAVE_PTHREAD
     pthread_mutex_unlock(&arg->mutex);
+#endif
 
     if (i >= arg->length)
         goto cleanup;
@@ -194,7 +200,7 @@ cleanup:
     the most significant main variable uses k = 0
     the coefficients of A use variables k = 1 ... m
 */
-void nmod_mpoly_to_mpolyu_perm_deflate(
+void nmod_mpoly_to_mpolyu_perm_deflate_threaded_pool(
     nmod_mpolyu_t A,
     const nmod_mpoly_ctx_t uctx,
     const nmod_mpoly_t B,
@@ -251,15 +257,17 @@ void nmod_mpoly_to_mpolyu_perm_deflate(
     {
         _sort_arg_t arg;
 
-        pthread_mutex_init(&arg->mutex, NULL);
-        arg->index = 0;
+#if HAVE_PTHREAD
+	pthread_mutex_init(&arg->mutex, NULL);
+#endif
+	arg->index = 0;
         arg->coeffs = A->coeffs;
         arg->length = A->length;
         arg->ctx = uctx;
 
         for (i = 0; i < num_handles; i++)
         {
-            thread_pool_wake(global_thread_pool, handles[i], _worker_sort, arg);
+            thread_pool_wake(global_thread_pool, handles[i], 0, _worker_sort, arg);
         }
         _worker_sort(arg);
         for (i = 0; i < num_handles; i++)
@@ -267,7 +275,9 @@ void nmod_mpoly_to_mpolyu_perm_deflate(
             thread_pool_wait(global_thread_pool, handles[i]);
         }
 
+#if HAVE_PTHREAD
         pthread_mutex_destroy(&arg->mutex);
+#endif
     }
     else
     {
@@ -295,8 +305,7 @@ void nmod_mpoly_to_mpolyu_perm_deflate(
             Aexp[l] += scale[l]*Bexp[k]
 */
 void nmod_mpoly_from_mpolyu_perm_inflate(
-    nmod_mpoly_t A,
-    flint_bitcnt_t Abits,
+    nmod_mpoly_t A, flint_bitcnt_t Abits,
     const nmod_mpoly_ctx_t ctx,
     const nmod_mpolyu_t B,
     const nmod_mpoly_ctx_t uctx,
@@ -583,39 +592,6 @@ void nmod_mpolyu_msub(nmod_mpolyu_t R, nmod_mpolyu_t A, nmod_mpolyu_t B,
     R->length = k;
 }
 
-int nmod_mpolyu_divides(nmod_mpolyu_t A, nmod_mpolyu_t B,
-                                                    const nmod_mpoly_ctx_t ctx)
-{
-    int ret = 0;
-    nmod_mpolyu_t P, R;
-    nmod_mpoly_t t;
-    nmod_mpoly_init(t, ctx);
-    nmod_mpolyu_init(P, A->bits, ctx);
-    nmod_mpolyu_init(R, A->bits, ctx);
-    nmod_mpolyu_set(R, A, ctx);
-
-    FLINT_ASSERT(B->length > 0);
-
-    while (R->length > 0)
-    {
-        if (R->exps[0] < B->exps[0])
-            goto done;
-
-        if (!nmod_mpoly_divides(t, R->coeffs + 0, B->coeffs + 0, ctx))
-            goto done;
-        nmod_mpolyu_msub(P, R, B, t, R->exps[0] - B->exps[0], ctx);
-        nmod_mpolyu_swap(P, R, ctx);
-    }
-    ret = 1;
-
-done:
-    nmod_mpoly_clear(t, ctx);
-    nmod_mpolyu_clear(P, ctx);
-    nmod_mpolyu_clear(R, ctx);
-    return ret;
-}
-
-
 /*
     A = B / c and preserve the bit packing
 */
@@ -666,6 +642,67 @@ void nmod_mpolyu_divexact_mpoly(nmod_mpolyu_t A, nmod_mpolyu_t B,
     TMP_END;
 }
 
+void nmod_mpolyu_divexact_mpoly_inplace(nmod_mpolyu_t A, nmod_mpoly_t c,
+                                                    const nmod_mpoly_ctx_t ctx)
+{
+    slong i, N, len;
+    flint_bitcnt_t bits;
+    ulong * cmpmask;
+    nmod_mpoly_t t;
+    TMP_INIT;
+
+    FLINT_ASSERT(c->length > 0);
+
+    if (nmod_mpoly_is_ui(c, ctx))
+    {
+        if (c->coeffs[0] == 1)
+            return;
+
+        for (i = 0; i < A->length; i++)
+        {
+            nmod_mpoly_struct * Ai = A->coeffs + i;
+            _nmod_vec_scalar_mul_nmod(Ai->coeffs, Ai->coeffs, Ai->length,
+                   nmod_inv(c->coeffs[0], ctx->ffinfo->mod), ctx->ffinfo->mod);
+        }
+
+        return;
+    }
+
+    bits = A->bits;
+    FLINT_ASSERT(bits == c->bits);
+
+    nmod_mpoly_init3(t, 0, bits, ctx);
+
+    N = mpoly_words_per_exp(bits, ctx->minfo);
+
+    TMP_START;
+
+    cmpmask = (ulong*) TMP_ALLOC(N*sizeof(ulong));
+    mpoly_get_cmpmask(cmpmask, N, bits, ctx->minfo);
+
+    for (i = A->length - 1; i >= 0; i--)
+    {
+        nmod_mpoly_struct * poly1 = t;
+        nmod_mpoly_struct * poly2 = A->coeffs + i;
+        nmod_mpoly_struct * poly3 = c;
+
+        FLINT_ASSERT(poly2->bits == bits);
+
+        len = _nmod_mpoly_divides_monagan_pearce(&poly1->coeffs, &poly1->exps,
+                            &poly1->alloc, poly2->coeffs, poly2->exps, poly2->length,
+                              poly3->coeffs, poly3->exps, poly3->length, bits, N,
+                                                  cmpmask, ctx->ffinfo);
+        FLINT_ASSERT(len > 0);
+        poly1->length = len;
+        nmod_mpoly_swap(poly2, poly1, ctx);
+    }
+
+    TMP_END;
+
+    nmod_mpoly_clear(t, ctx);
+}
+
+
 /*
     A = B * c and preserve the bit packing
 */
@@ -715,7 +752,73 @@ void nmod_mpolyu_mul_mpoly(nmod_mpolyu_t A, nmod_mpolyu_t B,
     TMP_END;
 }
 
-int nmod_mpolyu_content_mpoly(
+
+void nmod_mpolyu_mul_mpoly_inplace(nmod_mpolyu_t A, nmod_mpoly_t c,
+                                                    const nmod_mpoly_ctx_t ctx)
+{
+    slong i;
+    slong len;
+    slong N;
+    flint_bitcnt_t bits;
+    ulong * cmpmask;
+    nmod_mpoly_t t;
+    TMP_INIT;
+
+    FLINT_ASSERT(c->length > 0);
+
+    if (nmod_mpoly_is_ui(c, ctx))
+    {
+        if (c->coeffs[0] == 1)
+            return;
+
+        for (i = 0; i < A->length; i++)
+        {
+            nmod_mpoly_struct * Ai = A->coeffs + i;
+            _nmod_vec_scalar_mul_nmod(Ai->coeffs, Ai->coeffs, Ai->length,
+                                               c->coeffs[0], ctx->ffinfo->mod);
+        }
+
+        return;
+    }
+
+    bits = A->bits;
+    FLINT_ASSERT(bits == c->bits);
+
+    nmod_mpoly_init3(t, 0, bits, ctx);
+
+    N = mpoly_words_per_exp(bits, ctx->minfo);
+
+    TMP_START;
+
+    cmpmask = (ulong*) TMP_ALLOC(N*sizeof(ulong));
+    mpoly_get_cmpmask(cmpmask, N, bits, ctx->minfo);
+
+    for (i = A->length - 1; i >= 0; i--)
+    {
+        nmod_mpoly_struct * poly1 = t;
+        nmod_mpoly_struct * poly2 = A->coeffs + i;
+        nmod_mpoly_struct * poly3 = c;
+
+        FLINT_ASSERT(poly2->bits == bits);
+
+        len = _nmod_mpoly_mul_johnson(&poly1->coeffs, &poly1->exps,
+                       &poly1->alloc, poly2->coeffs, poly2->exps, poly2->length,
+                        poly3->coeffs, poly3->exps, poly3->length, bits, N,
+                                                  cmpmask, ctx->ffinfo);
+
+        FLINT_ASSERT(len > 0);
+        poly1->length = len;
+        nmod_mpoly_swap(poly2, poly1, ctx);
+    }
+
+    TMP_END;
+
+    nmod_mpoly_clear(t, ctx);
+}
+
+
+
+int nmod_mpolyu_content_mpoly_threaded_pool(
     nmod_mpoly_t g,
     const nmod_mpolyu_t A,
     const nmod_mpoly_ctx_t ctx,
@@ -755,8 +858,8 @@ int nmod_mpolyu_content_mpoly(
     if (j == 0)
         j = 1;
 
-    success = _nmod_mpoly_gcd(g, bits, A->coeffs + 0, A->coeffs + j, ctx,
-                                                        handles, num_handles);
+    success = _nmod_mpoly_gcd_threaded_pool(g, bits, A->coeffs + 0,
+                                     A->coeffs + j, ctx, handles, num_handles);
     if (!success)
         return 0;
 
@@ -765,8 +868,8 @@ int nmod_mpolyu_content_mpoly(
         if (i == j)
             continue;
 
-        success = _nmod_mpoly_gcd(g, bits, g, A->coeffs + i, ctx,
-                                                         handles, num_handles);
+        success = _nmod_mpoly_gcd_threaded_pool(g, bits, g,
+                                     A->coeffs + i, ctx, handles, num_handles);
         FLINT_ASSERT(g->bits == bits);
         if (!success)
             return 0;

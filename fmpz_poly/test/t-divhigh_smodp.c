@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -79,7 +79,7 @@ main(void)
         result = 1;
         for (j = 0; j < n && result; j++)
         {
-           fmpz_mods(t, a->coeffs + a->length - j - 1, P);
+           fmpz_smod(t, a->coeffs + a->length - j - 1, P);
            result = fmpz_equal(t, vec + n - j - 1);
         }
 

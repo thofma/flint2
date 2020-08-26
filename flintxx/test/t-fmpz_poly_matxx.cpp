@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <iostream>
@@ -172,8 +172,13 @@ test_functions()
     tassert(solve(B, A).get<1>() == X);
 
     permxx perm(B.rows());
-    tassert(solve_fflu_precomp(perm, B.fflu(&perm, false).get<1>().evaluate(), A)
-            == B.solve_fflu(A).get<1>());
+    fmpz_poly_matxx F(B.rows(), B.rows());
+    fmpz_polyxx Fd, Xd;
+    slong rk;
+    // Note: fflu has a (false?) dependency on perm - need perm = id before call
+    ltupleref(rk, F, Fd) = B.fflu(&perm, false);
+    ltupleref(worked, X, Xd) = B.solve_fflu(A);
+    tassert(worked && Xd*solve_fflu_precomp(perm, F, A) == Fd * X);
 
     slong nullity;
     tassert(nullspace(A).get<1>().rows() == 3);

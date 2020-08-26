@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -72,6 +72,20 @@ void fmpz_mod_poly_divrem_basecase(fmpz_mod_poly_t Q, fmpz_mod_poly_t R,
     const slong lenA = A->length, lenB = B->length, lenQ = lenA - lenB + 1;
     fmpz *q, *r;
     fmpz_t invB;
+
+    if (lenB == 0)
+    {
+        if (fmpz_is_one(fmpz_mod_poly_modulus(B)))
+        {
+            fmpz_mod_poly_set(Q, A);
+            fmpz_mod_poly_zero(R);
+            return;
+        } else
+        {
+            flint_printf("Exception (fmpz_mod_poly_divrem_basecase). Division by zero.\n");
+            flint_abort();
+        }
+    }
 
     if (lenA < lenB)
     {

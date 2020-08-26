@@ -20,6 +20,14 @@ endif()
 option(BUILD_SHARED_LIBS "Build shared libs" on)
 option(WITH_NTL "Build with NTL or not" off)
 
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/configure" CONFIGURE_CONTENTS)
+string(REGEX MATCH "FLINT_MAJOR=([0-9]*)" _ ${CONFIGURE_CONTENTS})
+set(FLINT_MAJOR ${CMAKE_MATCH_1})
+string(REGEX MATCH "FLINT_MINOR=([0-9]*)" _ ${CONFIGURE_CONTENTS})
+set(FLINT_MINOR ${CMAKE_MATCH_1})
+string(REGEX MATCH "FLINT_PATCH=([0-9]*)" _ ${CONFIGURE_CONTENTS})
+set(FLINT_PATCH ${CMAKE_MATCH_1})
+
 find_package(GMP REQUIRED)
 find_package(MPFR REQUIRED)
 if (WITH_NTL)
@@ -42,7 +50,7 @@ set(BUILD_DIRS
     aprcl ulong_extras long_extras perm fmpz fmpz_vec fmpz_poly 
     fmpq_poly fmpz_mat fmpz_lll mpfr_vec mpfr_mat mpf_vec mpf_mat nmod_vec nmod_poly 
     nmod_poly_factor arith mpn_extras nmod_mat fmpq fmpq_vec fmpq_mat padic 
-    fmpz_poly_q fmpz_poly_mat nmod_poly_mat fmpz_mod_poly 
+    fmpz_poly_q fmpz_poly_mat nmod_poly_mat fmpz_mod_poly fmpz_mod_mat 
     fmpz_mod_poly_factor fmpz_factor fmpz_poly_factor fft qsieve 
     double_extras d_vec d_mat padic_poly padic_mat qadic  
     fq fq_vec fq_mat fq_poly fq_poly_factor
@@ -50,6 +58,7 @@ set(BUILD_DIRS
     fq_zech fq_zech_vec fq_zech_mat fq_zech_poly fq_zech_poly_factor 
     thread_pool fmpz_mod 
     mpoly fmpz_mpoly fmpq_mpoly nmod_mpoly fq_nmod_mpoly fmpz_mod_mpoly 
+    n_poly fmpz_mpoly_factor fmpq_mpoly_factor nmod_mpoly_factor fq_nmod_mpoly_factor fq_zech_mpoly fq_zech_mpoly_factor 
     flintxx
 )
 
@@ -64,19 +73,23 @@ set(SOURCES
     hashmap.c inlines.c fmpz/fmpz.c
 )
 
+if (MSVC)
+    list(APPEND SOURCES gettimeofday.c)
+endif()
+
 if (WITH_NTL)
     list(APPEND SOURCES interfaces/NTL-interface.cpp)
 endif()
 
 set(HEADERS
-    NTL-interface.h flint.h longlong.h config.h gmpcompat.h fft_tuning.h
+    NTL-interface.h flint.h longlong.h flint-config.h gmpcompat.h fft_tuning.h
     fmpz-conversions.h profiler.h templates.h exception.h hashmap.h
 )
 
 foreach (build_dir IN LISTS BUILD_DIRS TEMPLATE_DIRS)
-    file(GLOB TEMP "${build_dir}/*.c")
+    file(GLOB TEMP RELATIVE "${CMAKE_SOURCE_DIR}" "${build_dir}/*.c")
     list(APPEND SOURCES ${TEMP})
-    file(GLOB TEMP "${build_dir}/*.h")
+    file(GLOB TEMP RELATIVE "${CMAKE_SOURCE_DIR}" "${build_dir}/*.h")
     list(APPEND HEADERS ${TEMP})
 endforeach ()
 
@@ -109,7 +122,7 @@ else()
     set(HAVE_DOUBLE_IEEE_BIG_ENDIAN ON)
 endif()
 
-# setup for config.h
+# setup for flint-config.h
 check_include_files(alloca.h HAVE_ALLOCA_H)
 check_include_files(dlfcn.h HAVE_DLFCN_H)
 check_include_files(fcntl.h HAVE_FCNTL_H)
@@ -169,7 +182,7 @@ endif()
 
 configure_file(
     config.h.in
-    config.h
+    flint-config.h
 )
 
 configure_file(
@@ -240,6 +253,28 @@ if (HAS_FLAG_UNROLL_LOOPS)
     target_compile_options(flint PUBLIC "-funroll-loops")
 endif()
 
+# Versioning
+
+set_target_properties(flint PROPERTIES
+    VERSION ${FLINT_MAJOR}.${FLINT_MINOR}.${FLINT_PATCH}
+    SOVERSION ${FLINT_MAJOR}
+)
+
+# Following versioning parts are optional
+# Match versioning scheme in configure based build system.
+if (APPLE)
+    if(${CMAKE_VERSION} VERSION_LESS "3.17.0")
+        message(WARNING "To match the versioning scheme of configure based build system, switch to cmake 3.17.0")
+    else ()
+        set_target_properties(flint PROPERTIES
+            MACHO_COMPATIBILITY_VERSION ${FLINT_MAJOR}.${FLINT_MINOR}
+            MACHO_CURRENT_VERSION ${FLINT_MAJOR}.${FLINT_MINOR}.${FLINT_PATCH}
+        )
+    endif()
+elseif (WIN32)
+    set_target_properties(flint PROPERTIES RUNTIME_OUTPUT_NAME "flint-${FLINT_MAJOR}")
+endif()
+
 if(NOT DEFINED IPO_SUPPORTED)
     message(STATUS "Checking for IPO")
     check_ipo_supported(RESULT ipo_supported LANGUAGES C)
@@ -303,4 +338,17 @@ if(BUILD_TESTING)
             )
         endforeach()
     endforeach ()
+endif()
+
+
+if(BUILD_DOCS)
+    find_package(Sphinx REQUIRED)
+    file(GLOB DOC_SOURCES doc/source/*.rst)
+    add_custom_target(html
+        COMMAND ${SPHINX_EXECUTABLE} -b html "${CMAKE_SOURCE_DIR}/doc/source" "${CMAKE_BINARY_DIR}/html"
+        SOURCES ${DOC_SOURCES})  
+    add_custom_target(latex
+        COMMAND ${SPHINX_EXECUTABLE} -b latex "${CMAKE_SOURCE_DIR}/doc/source" "${CMAKE_BINARY_DIR}/latex"
+        SOURCES ${DOC_SOURCES})  
+    add_custom_target(pdf DEPENDS latex COMMAND make WORKING_DIRECTORY "${CMAKE_BINARY_DIR}/latex") 
 endif()

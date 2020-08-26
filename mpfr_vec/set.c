@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -16,7 +16,7 @@
 #include "mpfr_vec.h"
 
 void
-_mpfr_vec_set(mpfr * vec1, const mpfr * vec2, slong length)
+_mpfr_vec_set(flint_mpfr * vec1, const flint_mpfr * vec2, slong length)
 {
     slong i;
     for (i = 0; i < length; i++)

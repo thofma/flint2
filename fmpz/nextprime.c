@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -54,19 +54,12 @@ void fmpz_nextprime(fmpz_t res, const fmpz_t n, int proved)
 
     if (proved)
     {
-        int proof = fmpz_is_prime(res);
-
-        if (proof == 0)
+        if (!fmpz_is_prime(res))
         {
             /* Keep searching. No big penalty for recursion here because this
              * will almost never happen.
              */
             fmpz_nextprime(res, res, proved);
-        }
-        else if (proof < 0)
-        {
-            flint_printf("Exception in fmpz_nextprime: Proof requested but couldn't be found\n");
-            flint_abort();
         }
     }
 }

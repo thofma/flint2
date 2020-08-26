@@ -60,7 +60,7 @@ Factorisation
 
     Concatenates two factorisations.
 
-    This is equivalent to calling ``fmpz_mod_poly_factor_insert()``
+    This is equivalent to calling :func:`fmpz_mod_poly_factor_insert`
     repeatedly with the individual factors of ``fac``.
 
     Does not support aliasing between ``res`` and ``fac``.
@@ -83,10 +83,10 @@ Factorisation
     Returns 1 if the polynomial ``f`` is irreducible, otherwise returns 0.
     Uses Rabin irreducibility test.
 
-.. function:: int fmpz_mod_poly_is_irreducible_rabin_f(fmpz_t f, const fmpz_mod_poly_t f)
+.. function:: int fmpz_mod_poly_is_irreducible_rabin_f(fmpz_t r, const fmpz_mod_poly_t f)
 
-    Either sets `f` to `1` and return 1 if the polynomial ``f`` is 
-    irreducible or `0` otherwise, or set `f` to a nontrivial factor of
+    Either sets `r` to `1` and return 1 if the polynomial ``f`` is 
+    irreducible or `0` otherwise, or set `r` to a nontrivial factor of
     `p`.
 
     This algorithm correctly determines whether `f` to is irreducible over 
@@ -102,7 +102,7 @@ Factorisation
 .. function:: int _fmpz_mod_poly_is_squarefree_f(fmpz_t fac, const fmpz * f, slong len, const fmpz_t p)
 
     If `fac` returns with the value `1` then the function operates as per
-    ``_fmpz_mod_poly_is_squarefree``, otherwise `f` is set to a nontrivial
+    :func:`_fmpz_mod_poly_is_squarefree`, otherwise `f` is set to a nontrivial
     factor of `p`.
 
 .. function:: int fmpz_mod_poly_is_squarefree(const fmpz_mod_poly_t f)
@@ -113,7 +113,7 @@ Factorisation
 .. function:: int fmpz_mod_poly_is_squarefree_f(fmpz_t fac, const fmpz_mod_poly_t f)
 
     If `fac` returns with the value `1` then the function operates as per
-    ``fmpz_mod_poly_is_squarefree``, otherwise `f` is set to a nontrivial
+    :func:`fmpz_mod_poly_is_squarefree`, otherwise `f` is set to a nontrivial
     factor of `p`.
 
 .. function:: int fmpz_mod_poly_factor_equal_deg_prob(fmpz_mod_poly_t factor, flint_rand_t state, const fmpz_mod_poly_t pol, slong d)
@@ -144,7 +144,7 @@ Factorisation
 
 .. function:: void fmpz_mod_poly_factor_distinct_deg_threaded(fmpz_mod_poly_factor_t res, const fmpz_mod_poly_t poly, slong * const *degs)
 
-    Multithreaded version of ``fmpz_mod_poly_factor_distinct_deg``.
+    Multithreaded version of :func:`fmpz_mod_poly_factor_distinct_deg`.
 
 .. function:: void fmpz_mod_poly_factor_squarefree(fmpz_mod_poly_factor_t res, const fmpz_mod_poly_t f)
 
@@ -154,7 +154,7 @@ Factorisation
 
     Factorises a non-constant polynomial ``f`` into monic irreducible
     factors choosing the best algorithm for given modulo and degree.
-    Choice is based on heuristic measurments.
+    Choice is based on heuristic measurements.
 
 .. function:: void fmpz_mod_poly_factor_cantor_zassenhaus(fmpz_mod_poly_factor_t res, const fmpz_mod_poly_t f)
 
@@ -167,18 +167,37 @@ Factorisation
     factors using the fast version of Cantor-Zassenhaus algorithm proposed by
     Kaltofen and Shoup (1998). More precisely this algorithm uses a
     baby step/giant step strategy for the distinct-degree factorization
-    step. If ``flint_get_num_threads()`` is greater than one
-    ``fmpz_mod_poly_factor_distinct_deg_threaded`` is used.
+    step. If :func:`flint_get_num_threads` is greater than one
+    :func:`fmpz_mod_poly_factor_distinct_deg_threaded` is used.
 
 .. function:: void fmpz_mod_poly_factor_berlekamp(fmpz_mod_poly_factor_t factors, const fmpz_mod_poly_t f)
 
     Factorises a non-constant polynomial ``f`` into monic irreducible
     factors using the Berlekamp algorithm.
 
-.. function:: void * _fmpz_mod_poly_interval_poly_worker(void* arg_ptr)
+.. function:: void _fmpz_mod_poly_interval_poly_worker(void* arg_ptr)
 
     Worker function to compute interval polynomials in distinct degree
     factorisation. Input/output is stored in
-    ``fmpz_mod_poly_interval_poly_arg_t``.
+    :type:`fmpz_mod_poly_interval_poly_arg_t`.
 
+
+Root Finding
+--------------------------------------------------------------------------------
+
+.. function:: void fmpz_mod_poly_roots(fmpz_mod_poly_factor_t r, const fmpz_mod_poly_t f, int with_multiplicity)
+
+    Fill `r` with factors of the form `x - r_i` where the `r_i` are the distinct roots of a nonzero `f` in `Z/pZ`.
+    It is expected and not checked that `f->p` is prime.
+    If `with_multiplicity` is zero, the exponent `e_i` of the factor `x - r_i` is `1`. Otherwise, it is the largest `e_i` such that `(x-r_i)^e_i` divides `f`.
+    This function throws if `f` is zero, but is otherwise always successful.
+
+.. function:: int fmpz_mod_poly_roots_factored(fmpz_mod_poly_factor_t r, const fmpz_mod_poly_t f, int with_multiplicity, const fmpz_factor_t n)
+
+    Fill `r` with factors of the form `x - r_i` where the `r_i` are the distinct roots of a nonzero `f` in `Z/nZ`.
+    It is expected and not checked that `n` is a prime factorization of `f->p`.
+    If `with_multiplicity` is zero, the exponent `e_i` of the factor `x - r_i` is `1`. Otherwise, it is the largest `e_i` such that `(x-r_i)^e_i` divides `f`.
+    The roots are first found modulo the primes in `n`, then lifted to the corresponding prime powers, then combined into roots of the original polynomial `f`.
+    A return of `1` indicates the function was successful. A return of `0` indicates the function was not able to find the roots, possibly because there are too many of them.
+    This function throws if `f` is zero.
 

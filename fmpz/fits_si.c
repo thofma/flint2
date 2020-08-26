@@ -42,7 +42,7 @@ flint_mpz_fits_si_p(mpz_srcptr z)
   if (n == 1)
     return limb <= FLINT_SI_MAX;
   if (n == -1)
-    return limb <= - (mp_limb_t) FLINT_SI_MIN;
+    return limb <= (mp_limb_t) FLINT_SI_MIN;
   return 0;
 }
 
@@ -57,7 +57,7 @@ flint_mpz_fits_si_p(mpz_srcptr z)
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 int fmpz_fits_si(const fmpz_t f)

@@ -7,12 +7,12 @@ Macros
 --------------------------------------------------------------------------------
 
 
-.. function:: MACRO MPN_NORM(a, an)
+.. macro:: MPN_NORM(a, an)
 
     Normalise ``(a, an)`` so that either ``an`` is zero or 
     ``a[an - 1]`` is nonzero.
 
-.. function:: MACRO MPN_SWAP(a, an, b, bn)
+.. macro:: MPN_SWAP(a, an, b, bn)
 
     Swap ``(a, an)`` and ``(b, bn)``, i.e. swap pointers and sizes.
 
@@ -31,11 +31,22 @@ Utility functions
     Returns `1` if all limbs of ``(x, xsize)`` are zero, otherwise `0`.
 
 
+Multiplication
+--------------------------------------------------------------------------------
+
+
+.. function:: mp_size_t flint_mpn_fmms1(mp_ptr y, mp_limb_t a1, mp_srcptr x1, mp_limb_t a2, mp_srcptr x2, mp_size_t n)
+
+    Given not-necessarily-normalized `x_1` and `x_2` of length `n > 0` and output `y` of length `n`, try to compute `y = a_1*x_1 - a_2*x_2`.
+    Return the normalized length of `y` if `y \ge 0` and `y` fits into `n` limbs. Otherwise, return `-1`.
+    `y` may alias `x1` but is not allowed to alias `x_2`.
+
+
 Divisibility
 --------------------------------------------------------------------------------
 
 
-.. function:: int flint_mpn_divisible_1_p(x, xsize, d) (macro)
+.. function:: int flint_mpn_divisible_1_p(x, xsize, d)
 
     Expression determining whether ``(x, xsize)`` is divisible by the
     ``mp_limb_t d`` which is assumed to be odd-valued and at least~`3`.
@@ -71,6 +82,19 @@ Divisibility
     ``flint_primes[i]`` is a factor, otherwise returns `0` if no factor 
     is found. It is assumed that ``start >= 1``.
 
+.. function:: int flint_mpn_factor_trial_tree(slong * factors, mp_srcptr x, mp_size_t xsize, slong num_primes)
+
+    Searches for a factor of ``(x, xsize)`` among the primes in positions
+    approximately in the range ``0, ..., num_primes - 1`` of ``flint_primes``.
+    
+    Returns the number of prime factors found and fills ``factors`` with their
+    indices in ``flint_primes``. It is assumed that ``num_primes`` is in the
+    range ``0, ..., 3512``.
+
+    If the input fits in a small ``fmpz`` the number is fully factored instead.
+
+    The algorithm used is a tree based gcd with a product of primes, the tree
+    for which is cached globally (it is threadsafe).
 
 Division
 --------------------------------------------------------------------------------
@@ -97,7 +121,7 @@ Division
     quotient (which will either be 0 or 1), storing the remainder in-place 
     in ``a, n`` and the rest of the quotient in ``q, m - n``.
     We require the most significant bit of ``b, n`` to be 1.
-    dinv must be computed from ``b[n - 1]``, ``b[n - 2]`` by 
+    ``dinv`` must be computed from ``b[n - 1]``, ``b[n - 2]`` by 
     ``flint_mpn_preinv1``. We also require ``m >= n >= 2``.
 
 .. function:: void flint_mpn_mulmod_preinv1(mp_ptr r, mp_srcptr a, mp_srcptr b, mp_size_t n, mp_srcptr d, mp_limb_t dinv, ulong norm)
@@ -169,6 +193,18 @@ Division
 GCD
 --------------------------------------------------------------------------------
 
+
+.. function:: mp_size_t flint_mpn_gcd_full2(mp_ptr arrayg, mp_ptr array1, mp_size_t limbs1, mp_ptr array2, mp_size_t limbs2, mp_ptr temp)
+
+    Sets ``(arrayg, retvalue)`` to the gcd of ``(array1, limbs1)`` and
+        ``(array2, limbs2)``.
+
+    The only assumption is that neither ``limbs1`` or ``limbs2`` is
+    zero.
+
+    The function must be supplied with ``limbs1 + limbs2`` limbs of temporary
+    space, or ``NULL`` must be passed to ``temp`` if the function should
+    allocate its own space.
 
 .. function:: mp_size_t flint_mpn_gcd_full(mp_ptr arrayg, mp_ptr array1, mp_size_t limbs1, mp_ptr array2, mp_size_t limbs2)
 

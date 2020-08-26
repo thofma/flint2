@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -26,7 +26,7 @@ slong _fmpz_mod_poly_xgcd_euclidean_f(fmpz_t f, fmpz *G, fmpz *S, fmpz *T,
     if (lenB == 1)
     {
         fmpz_set_ui(f, 1);
-		fmpz_set(G + 0, B + 0);
+        fmpz_set(G + 0, B + 0);
         fmpz_one(T + 0);
         return 1;
     }
@@ -42,13 +42,13 @@ slong _fmpz_mod_poly_xgcd_euclidean_f(fmpz_t f, fmpz *G, fmpz *S, fmpz *T,
         if (!fmpz_is_one(f))
             goto cleanup2;
         
-		lenR = lenB - 1;
+        lenR = lenB - 1;
         FMPZ_VEC_NORM(R, lenR);
 
         if (lenR == 0)
         {
             fmpz_set_ui(f, 1);
-			_fmpz_vec_set(G, B, lenB);
+            _fmpz_vec_set(G, B, lenB);
             fmpz_one(T + 0);
 
             _fmpz_vec_clear(Q, 2 * lenA);
@@ -78,9 +78,9 @@ slong _fmpz_mod_poly_xgcd_euclidean_f(fmpz_t f, fmpz *G, fmpz *S, fmpz *T,
             do {
                 fmpz_gcdinv(f, inv, V3 + (lenV3 - 1), p);
                 if (!fmpz_is_one(f))					
-					goto cleanup;
+                    goto cleanup;
 				
-				_fmpz_mod_poly_divrem_basecase(Q, D, D, lenD, V3, lenV3, inv, p);
+                _fmpz_mod_poly_divrem_basecase(Q, D, D, lenD, V3, lenV3, inv, p);
                 lenQ = lenD - lenV3 + 1;
                 lenD = lenV3 - 1;
                 FMPZ_VEC_NORM(D, lenD);
@@ -113,12 +113,11 @@ slong _fmpz_mod_poly_xgcd_euclidean_f(fmpz_t f, fmpz *G, fmpz *S, fmpz *T,
             }
 
 cleanup:
-
+            fmpz_clear(inv);
             _fmpz_vec_clear(W, FLINT_MAX(5 * lenB, lenA + lenB));
 			
 cleanup2:
             _fmpz_vec_clear(Q, 2 * lenA);
-            fmpz_clear(inv);
 
             return lenD;
         }
@@ -161,10 +160,10 @@ fmpz_mod_poly_xgcd_euclidean_f(fmpz_t f, fmpz_mod_poly_t G,
 
             fmpz_gcdinv(f, inv, fmpz_mod_poly_lead(B), &B->p);
             
-			if (!fmpz_is_one(f))
+            if (!fmpz_is_one(f))
                goto cleanup;
 
-			   if (G == A || G == B)
+            if (G == A || G == B)
             {
                 g = _fmpz_vec_init(FLINT_MIN(lenA, lenB));
             }

@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -25,9 +25,9 @@ void __flint_set_abort_init()
 }
 #endif
 
-void (*abort_func)(void) = abort;
+FLINT_NORETURN void (*abort_func)(void) = abort;
 
-void flint_set_abort(void (*func)(void))
+void flint_set_abort(FLINT_NORETURN void (*func)(void))
 {
 #if FLINT_REENTRANT && !HAVE_TLS
     pthread_once(&abort_func_init, __flint_set_abort_init);
@@ -41,7 +41,7 @@ void flint_set_abort(void (*func)(void))
 #endif
 }
 
-void flint_abort()
+FLINT_NORETURN void flint_abort()
 {
     (*abort_func)();
 }

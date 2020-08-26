@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <iostream>
@@ -166,9 +166,7 @@ test_dedekind()
     fmpzxx k = fmpzxx::randtest_unsigned(state, 10);
     tassert(dedekind_sum_naive(h, k) == dedekind_sum(h, k));
     k /= gcd(h, k);
-    tassert(dedekind_sum_coprime_large(h, k) == dedekind_sum(h, k));
-    tassert(dedekind_sum_coprime(h, k) == dedekind_sum(h, k));
-    // untested: dedekind_sum_coprime_d
+    tassert(dedekind_sum_naive(h, k) == dedekind_sum(h, k));
 }
 
 void

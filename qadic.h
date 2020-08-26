@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifndef QADIC_H
@@ -70,6 +70,10 @@ qadic_ctx_struct;
 typedef qadic_ctx_struct qadic_ctx_t[1];
 
 FLINT_DLL void qadic_ctx_init_conway(qadic_ctx_t ctx, 
+                           const fmpz_t p, slong d, slong min, slong max, 
+                           const char *var, enum padic_print_mode mode);
+
+FLINT_DLL void qadic_ctx_init(qadic_ctx_t ctx, 
                            const fmpz_t p, slong d, slong min, slong max, 
                            const char *var, enum padic_print_mode mode);
 
@@ -403,6 +407,11 @@ FLINT_DLL void _qadic_log(fmpz *z, const fmpz *y, slong v, slong len,
                 const fmpz_t p, slong N, const fmpz_t pN);
 
 FLINT_DLL int qadic_log(qadic_t rop, const qadic_t op, const qadic_ctx_t ctx);
+
+FLINT_DLL void _qadic_frobenius_a(fmpz *rop, slong exp, 
+                        const fmpz *a, const slong *j, slong lena, 
+                                  const fmpz_t p, slong N);
+
 
 FLINT_DLL void _qadic_frobenius(fmpz *rop, const fmpz *op, slong len, slong e, 
                   const fmpz *a, const slong *j, slong lena, 

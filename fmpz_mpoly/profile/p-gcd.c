@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 /* usage
@@ -102,7 +102,7 @@ void profile_gcd(
             (worker_args + i)->ctx = ctx;
             if (i < num_workers)
             {
-                thread_pool_wake(global_thread_pool, handles[i], worker_gcd, worker_args + i);
+                thread_pool_wake(global_thread_pool, handles[i], 0, worker_gcd, worker_args + i);
             }
             else
             {

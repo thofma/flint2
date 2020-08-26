@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "aprcl.h"
@@ -15,7 +15,7 @@
     Returns 1 if gcd(x * y, n) == 1; otherwise returns 0.
 */
 int
-is_mul_coprime_ui_ui(ulong x, ulong y, const fmpz_t n)
+aprcl_is_mul_coprime_ui_ui(ulong x, ulong y, const fmpz_t n)
 {
     ulong a, rem;
     int result = 0;
@@ -36,7 +36,7 @@ is_mul_coprime_ui_ui(ulong x, ulong y, const fmpz_t n)
     Returns 1 if gcd(x * y, n) == 1; otherwise returns 0.
 */
 int
-is_mul_coprime_ui_fmpz(ulong x, const fmpz_t y, const fmpz_t n)
+aprcl_is_mul_coprime_ui_fmpz(ulong x, const fmpz_t y, const fmpz_t n)
 {
     int is_coprime = 0;
     ulong a, rem;

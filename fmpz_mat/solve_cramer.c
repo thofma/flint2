@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "fmpz_mat.h"
@@ -138,7 +138,20 @@ fmpz_mat_solve_cramer(fmpz_mat_t X, fmpz_t den,
     }
     else if (dim == 3)
     {
-        return _fmpz_mat_solve_cramer_3x3(X, den, A, B);
+        if (X == A)
+        {
+            int success;
+            fmpz_mat_t T;
+            fmpz_mat_init(T, 3, 3);
+            success = _fmpz_mat_solve_cramer_3x3(T, den, A, B);
+            fmpz_mat_swap(T, X);
+            fmpz_mat_clear(T);
+            return success;
+        }
+        else
+        {
+            return _fmpz_mat_solve_cramer_3x3(X, den, A, B);
+        }
     }
     else
     {

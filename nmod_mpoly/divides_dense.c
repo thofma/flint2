@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "nmod_poly.h"
@@ -183,7 +183,12 @@ int nmod_mpoly_divides_dense(nmod_mpoly_t Q,
 
     if (B->length == 0)
     {
-        flint_throw(FLINT_DIVZERO, "Divide by zero in nmod_mpoly_divides_dense");
+        if (A->length == 0 || nmod_mpoly_ctx_modulus(ctx) == 1)
+        {
+            nmod_mpoly_set(Q, A, ctx);
+            return 1;
+        } else
+            flint_throw(FLINT_DIVZERO, "Divide by zero in nmod_mpoly_divides_dense");
     }
 
     if (A->length == 0)

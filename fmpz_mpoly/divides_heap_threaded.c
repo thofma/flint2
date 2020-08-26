@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "thread_pool.h"
@@ -212,7 +212,9 @@ typedef divides_heap_chunk_struct divides_heap_chunk_t[1];
 */
 typedef struct
 {
+#if HAVE_PTHREAD
     pthread_mutex_t mutex;
+#endif
     divides_heap_chunk_struct * head;
     divides_heap_chunk_struct * tail;
     divides_heap_chunk_struct * volatile cur;
@@ -1156,16 +1158,19 @@ slong _fmpz_mpoly_divides_stripe1(
             if (ds == FLINT_SIGN_EXT(acc_sm[1]) && d1 < lc_abs)
             {
                 ulong qq, rr, nhi, nlo;
+                FLINT_ASSERT(0 < lc_norm && lc_norm < FLINT_BITS);
                 nhi = (d1 << lc_norm) | (d0 >> (FLINT_BITS - lc_norm));
                 nlo = d0 << lc_norm;
                 udiv_qrnnd_preinv(qq, rr, nhi, nlo, lc_n, lc_i);
-                if (rr != WORD(0))
+                if (rr != UWORD(0))
                     goto not_exact_division;
 
-                if ((qq & (WORD(3) << (FLINT_BITS - 2))) == WORD(0))
+                if (qq <= COEFF_MAX)
                 {
                     _fmpz_demote(Qcoeff + Qlen);
-                    Qcoeff[Qlen] = (qq^(ds^lc_sign)) - (ds^lc_sign);
+                    Qcoeff[Qlen] = qq;
+                    if (ds != lc_sign)
+                        Qcoeff[Qlen] = -Qcoeff[Qlen];
                 }
                 else
                 {
@@ -1531,16 +1536,19 @@ slong _fmpz_mpoly_divides_stripe(
             if (ds == FLINT_SIGN_EXT(acc_sm[1]) && d1 < lc_abs)
             {
                 ulong qq, rr, nhi, nlo;
+                FLINT_ASSERT(0 < lc_norm && lc_norm < FLINT_BITS);
                 nhi = (d1 << lc_norm) | (d0 >> (FLINT_BITS - lc_norm));
                 nlo = d0 << lc_norm;
                 udiv_qrnnd_preinv(qq, rr, nhi, nlo, lc_n, lc_i);
-                if (rr != WORD(0))
+                if (rr != UWORD(0))
                     goto not_exact_division;
 
-                if ((qq & (WORD(3) << (FLINT_BITS - 2))) == WORD(0))
+                if (qq <= COEFF_MAX)
                 {
                     _fmpz_demote(Qcoeff + Qlen);
-                    Qcoeff[Qlen] = (qq^(ds^lc_sign)) - (ds^lc_sign);
+                    Qcoeff[Qlen] = qq;
+                    if (ds != lc_sign)
+                        Qcoeff[Qlen] = -Qcoeff[Qlen];
                 }
                 else
                 {
@@ -1950,21 +1958,31 @@ static void worker_loop(void * varg)
         }
         while (L != NULL)
         {
+#if HAVE_PTHREAD
             pthread_mutex_lock(&H->mutex);
-            if (L->lock != -1)
+#endif
+	    if (L->lock != -1)
             {
                 L->lock = -1;
+#if HAVE_PTHREAD
                 pthread_mutex_unlock(&H->mutex);
-                trychunk(W, L);
+#endif
+		trychunk(W, L);
+#if HAVE_PTHREAD
                 pthread_mutex_lock(&H->mutex);
-                L->lock = 0;
+#endif
+		L->lock = 0;
+#if HAVE_PTHREAD
                 pthread_mutex_unlock(&H->mutex);
-                break;
+#endif
+		break;
             }
             else
             {
+#if HAVE_PTHREAD
                 pthread_mutex_unlock(&H->mutex);
-            }
+#endif
+	    }
 
             L = L->next;
         }
@@ -1979,12 +1997,12 @@ static void worker_loop(void * varg)
 
 
 /* return 1 if quotient is exact */
-int _fmpz_mpoly_divides_heap_threaded(
+int _fmpz_mpoly_divides_heap_threaded_pool(
     fmpz_mpoly_t Q,
     const fmpz_mpoly_t A,
     const fmpz_mpoly_t B,
     const fmpz_mpoly_ctx_t ctx,
-    thread_pool_handle * handles,
+    const thread_pool_handle * handles,
     slong num_handles)
 {
     ulong mask;
@@ -2096,7 +2114,8 @@ int _fmpz_mpoly_divides_heap_threaded(
     for (i = 0; i + 1 < S->length; i++)
     {
         divides_heap_chunk_struct * L;
-        L = (divides_heap_chunk_struct *) malloc(sizeof(divides_heap_chunk_struct));
+        L = (divides_heap_chunk_struct *) flint_malloc(
+                                            sizeof(divides_heap_chunk_struct));
         L->ma = 0;
         L->mq = 0;
         L->emax = S->exps + N*i;
@@ -2159,7 +2178,9 @@ int _fmpz_mpoly_divides_heap_threaded(
 
     /* start the workers */
 
+#if HAVE_PTHREAD
     pthread_mutex_init(&H->mutex, NULL);
+#endif
 
     worker_args = (worker_arg_struct *) flint_malloc((num_handles + 1)
                                                         *sizeof(worker_arg_t));
@@ -2167,7 +2188,7 @@ int _fmpz_mpoly_divides_heap_threaded(
     for (i = 0; i < num_handles; i++)
     {
         (worker_args + i)->H = H;
-        thread_pool_wake(global_thread_pool, handles[i],
+        thread_pool_wake(global_thread_pool, handles[i], 0,
                                                  worker_loop, worker_args + i);
     }
     (worker_args + num_handles)->H = H;
@@ -2179,7 +2200,9 @@ int _fmpz_mpoly_divides_heap_threaded(
 
     flint_free(worker_args);
 
+#if HAVE_PTHREAD
     pthread_mutex_destroy(&H->mutex);
+#endif
 
     divides = divides_heap_base_clear(Q, H);
 
@@ -2206,13 +2229,12 @@ int fmpz_mpoly_divides_heap_threaded(
     fmpz_mpoly_t Q,
     const fmpz_mpoly_t A,
     const fmpz_mpoly_t B,
-    const fmpz_mpoly_ctx_t ctx,
-    slong thread_limit)
+    const fmpz_mpoly_ctx_t ctx)
 {
     thread_pool_handle * handles;
     slong num_handles;
     int divides;
-    slong i;
+    slong thread_limit = A->length/32;
 
     if (B->length < 2 || A->length < 2)
     {
@@ -2230,33 +2252,12 @@ int fmpz_mpoly_divides_heap_threaded(
         return fmpz_mpoly_divides_monagan_pearce(Q, A, B, ctx);
     }
 
-    handles = NULL;
-    num_handles = 0;
-    if (thread_limit > 1 && global_thread_pool_initialized)
-    {
-        slong max_num_handles;
-        max_num_handles = thread_pool_get_size(global_thread_pool);
-        max_num_handles = FLINT_MIN(thread_limit - 1, max_num_handles);
-        if (max_num_handles > 0)
-        {
-            handles = (thread_pool_handle *) flint_malloc(
-                                   max_num_handles*sizeof(thread_pool_handle));
-            num_handles = thread_pool_request(global_thread_pool,
-                                                     handles, max_num_handles);
-        }
-    }
+    num_handles = flint_request_threads(&handles, thread_limit);
 
-    divides = _fmpz_mpoly_divides_heap_threaded(Q, A, B, ctx,
+    divides = _fmpz_mpoly_divides_heap_threaded_pool(Q, A, B, ctx,
                                                          handles, num_handles);
 
-    for (i = 0; i < num_handles; i++)
-    {
-        thread_pool_give_back(global_thread_pool, handles[i]);
-    }
-    if (handles)
-    {
-        flint_free(handles);
-    }
+    flint_give_back_threads(handles, num_handles);
 
     return divides;
 }

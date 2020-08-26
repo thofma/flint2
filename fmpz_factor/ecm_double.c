@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -29,7 +29,7 @@ fmpz_factor_ecm_double(mp_ptr x, mp_ptr z, mp_ptr x0, mp_ptr z0,
 {
     if (flint_mpn_zero_p(z0, ecm_inf->n_size))
     {
-        mpn_copyi(x, x0, ecm_inf->n_size);
+        flint_mpn_copyi(x, x0, ecm_inf->n_size);
         mpn_zero(z, ecm_inf->n_size);
         return;
     }

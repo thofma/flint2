@@ -8,7 +8,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -69,8 +69,13 @@ nmod_poly_powmod_ui_binexp(nmod_poly_t res,
 
     if (lenf == 0)
     {
-        flint_printf("Exception (nmod_poly_powmod). Divide by zero.\n");
+        flint_printf("Exception (nmod_poly_powmod_ui_binexp). Divide by zero.\n");
         flint_abort();
+    }
+
+    if (lenf == 1)
+    {                                                                                             nmod_poly_zero(res);
+        return;
     }
 
     if (len >= lenf)
@@ -102,7 +107,7 @@ nmod_poly_powmod_ui_binexp(nmod_poly_t res,
         return;
     }
 
-    if (lenf == 1 || len == 0)
+    if (len == 0)
     {
         nmod_poly_zero(res);
         return;

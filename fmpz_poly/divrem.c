@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -75,15 +75,25 @@ void fmpz_poly_divrem(fmpz_poly_t Q, fmpz_poly_t R,
         _fmpz_vec_clear(Q->coeffs, Q->alloc);
         Q->coeffs = q;
         Q->alloc  = lenA - lenB + 1;
+        Q->length = lenA - lenB + 1;
     }
+    else
+    {
+        _fmpz_poly_set_length(Q, lenA - lenB + 1);
+    }
+
     if (R == A || R == B)
     {
         _fmpz_vec_clear(R->coeffs, R->alloc);
         R->coeffs = r;
-        R->alloc  = lenB - 1;
+        R->alloc  = lenA;
+        R->length = lenA;
     }
-    _fmpz_poly_set_length(Q, lenA - lenB + 1);
-    _fmpz_poly_set_length(R, lenA);
+    else
+    {
+        _fmpz_poly_set_length(R, lenA);
+    }
+
     _fmpz_poly_normalise(Q);
     _fmpz_poly_normalise(R);
 }

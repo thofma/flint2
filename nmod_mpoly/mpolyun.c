@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "nmod_mpoly.h"
@@ -680,7 +680,7 @@ void nmod_mpoly_to_mpolyun_perm_deflate(
     {
         nmod_mpolyu_t Au;
         nmod_mpolyu_init(Au, A->bits, uctx);
-        nmod_mpoly_to_mpolyu_perm_deflate(Au, uctx, B, ctx,
+        nmod_mpoly_to_mpolyu_perm_deflate_threaded_pool(Au, uctx, B, ctx,
                                     perm, shift, stride, handles, num_handles);
         nmod_mpolyu_cvtto_mpolyun(A, Au, m - 1, uctx);
         nmod_mpolyu_clear(Au, uctx);
@@ -723,7 +723,7 @@ void nmod_mpoly_to_mpolyun_perm_deflate(
 void nmod_mpoly_cvtto_mpolyn(nmod_mpolyn_t A, nmod_mpoly_t B,
                                          slong var, const nmod_mpoly_ctx_t ctx);
 
-void nmod_mpoly_to_mpolyn_perm_deflate(
+void nmod_mpoly_to_mpolyn_perm_deflate_threaded_pool(
     nmod_mpolyn_t A,
     const nmod_mpoly_ctx_t nctx,
     const nmod_mpoly_t B,

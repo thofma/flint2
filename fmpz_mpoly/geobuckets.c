@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -211,7 +211,8 @@ void fmpz_mpoly_geobucket_pow_ui_inplace(fmpz_mpoly_geobucket_t B1,
     fmpz_mpoly_init(a, ctx);
 
     fmpz_mpoly_geobucket_empty(a, B1, ctx);
-    fmpz_mpoly_pow_ui(a, a, k, ctx);
+    if (!fmpz_mpoly_pow_ui(a, a, k, ctx))
+        flint_throw(FLINT_ERROR, "fmpz_mpoly_pow_ui failed");
     fmpz_mpoly_geobucket_set(B1, a, ctx);
 
     fmpz_mpoly_clear(a, ctx);
@@ -224,7 +225,8 @@ void fmpz_mpoly_geobucket_pow_fmpz_inplace(fmpz_mpoly_geobucket_t B1,
     fmpz_mpoly_init(a, ctx);
 
     fmpz_mpoly_geobucket_empty(a, B1, ctx);
-    fmpz_mpoly_pow_fmpz(a, a, k, ctx);
+    if (!fmpz_mpoly_pow_fmpz(a, a, k, ctx))
+        flint_throw(FLINT_ERROR, "fmpz_mpoly_pow_fmpz failed");
     fmpz_mpoly_geobucket_set(B1, a, ctx);
 
     fmpz_mpoly_clear(a, ctx);

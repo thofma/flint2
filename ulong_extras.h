@@ -9,7 +9,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifndef ULONG_EXTRAS_H
@@ -119,9 +119,6 @@ FLINT_DLL extern const unsigned int flint_primes_small[];
 extern FLINT_TLS_PREFIX ulong * _flint_primes[FLINT_BITS];
 extern FLINT_TLS_PREFIX double * _flint_prime_inverses[FLINT_BITS];
 extern FLINT_TLS_PREFIX int _flint_primes_used;
-#if defined(_OPENMP) && !defined(HAVE_TLS)
-#pragma omp threadprivate(_flint_primes, _flint_prime_inverses, _flint_primes_used)
-#endif
 
 FLINT_DLL void n_compute_primes(ulong num_primes);
 
@@ -314,6 +311,8 @@ ulong n_invmod(ulong x, ulong y)
    return r;
 }
 
+FLINT_DLL ulong n_CRT(ulong r1, ulong m1, ulong r2, ulong m2);
+
 FLINT_DLL ulong n_revbin(ulong in, ulong bits);
 
 FLINT_DLL int n_jacobi(slong x, ulong y);
@@ -412,6 +411,10 @@ FLINT_DLL void n_factor(n_factor_t * factors, ulong n, int proved);
 
 FLINT_DLL ulong n_factor_pp1(ulong n, ulong B1, ulong c);
 
+FLINT_DLL ulong n_factor_pp1_wrapper(ulong n);
+
+FLINT_DLL void n_factor_pp1_table_insert(slong bits, slong B1, slong count);
+
 FLINT_DLL int n_factor_pollard_brent_single(ulong *factor, ulong n, 
                                             ulong ninv, ulong ai, 
                                             ulong xi, ulong normbits,
@@ -496,8 +499,7 @@ FLINT_DLL int n_factor_ecm(ulong *f, ulong curves, ulong B1,
 
 FLINT_DLL mp_limb_t n_mulmod_precomp_shoup(mp_limb_t w, mp_limb_t p);
 
-static __inline__
-mp_limb_t
+ULONG_EXTRAS_INLINE mp_limb_t
 n_mulmod_shoup(mp_limb_t w, mp_limb_t t, mp_limb_t w_precomp, mp_limb_t p)
 {
    mp_limb_t q, r, p_hi, p_lo;

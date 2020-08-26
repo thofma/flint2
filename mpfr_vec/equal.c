@@ -7,14 +7,14 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "flint.h"
 #include "mpfr_vec.h"
 
 int
-_mpfr_vec_equal(const mpfr * vec1, const mpfr * vec2, slong len)
+_mpfr_vec_equal(const flint_mpfr * vec1, const flint_mpfr * vec2, slong len)
 {
     slong i;
     if (vec1 == vec2)

@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -24,12 +24,12 @@ main(void)
     fflush(stdout);
 
     /* Check f*g/g = f */
-    for (i = 0; i < 10 * flint_test_multiplier(); i++)
+    for (i = 0; i < 30 * flint_test_multiplier(); i++)
     {
         fq_nmod_mpoly_ctx_t ctx;
         fq_nmod_mpoly_t f, g, h, k, r;
-        slong len, len1, len2, exp_bound, exp_bound1, exp_bound2;
-        slong exp_bits, exp_bits1, exp_bits2;
+        slong len, len1, len2;
+        flint_bitcnt_t exp_bits, exp_bits1, exp_bits2;
         fq_nmod_mpoly_struct * qarr[1], * darr[1];
 
         fq_nmod_mpoly_ctx_init_rand(ctx, state, 10, FLINT_BITS, 5);
@@ -40,27 +40,23 @@ main(void)
         fq_nmod_mpoly_init(k, ctx);
         fq_nmod_mpoly_init(r, ctx);
 
-        len = n_randint(state, 50);
-        len1 = n_randint(state, 50);
-        len2 = n_randint(state, 50) + 1;
+        len = n_randint(state, 30);
+        len1 = n_randint(state, 30);
+        len2 = n_randint(state, 30) + 1;
 
         exp_bits = n_randint(state, 200) + 1;
         exp_bits1 = n_randint(state, 200) + 1;
         exp_bits2 = n_randint(state, 200) + 1;
 
-        exp_bound = n_randbits(state, exp_bits);
-        exp_bound1 = n_randbits(state, exp_bits1);
-        exp_bound2 = n_randbits(state, exp_bits2);
-
         for (j = 0; j < 4; j++)
         {
-            fq_nmod_mpoly_randtest_bound(f, state, len1, exp_bound1, ctx);
-            do {
-                fq_nmod_mpoly_randtest_bound(g, state, len2, exp_bound2 + 1, ctx);
-            } while (g->length == 0);
-            fq_nmod_mpoly_randtest_bound(h, state, len, exp_bound, ctx);
-            fq_nmod_mpoly_randtest_bound(k, state, len, exp_bound, ctx);
-            fq_nmod_mpoly_randtest_bound(r, state, len, exp_bound, ctx);
+            fq_nmod_mpoly_randtest_bits(f, state, len1, exp_bits1, ctx);
+            fq_nmod_mpoly_randtest_bits(g, state, len2, exp_bits2 + 1, ctx);
+            if (fq_nmod_mpoly_is_zero(g, ctx))
+                fq_nmod_mpoly_one(g, ctx);
+            fq_nmod_mpoly_randtest_bits(h, state, len, exp_bits, ctx);
+            fq_nmod_mpoly_randtest_bits(k, state, len, exp_bits, ctx);
+            fq_nmod_mpoly_randtest_bits(r, state, len, exp_bits, ctx);
 
             fq_nmod_mpoly_mul_johnson(h, f, g, ctx);
 
@@ -132,9 +128,9 @@ main(void)
             fq_nmod_mpoly_randtest_bound(f, state, len1, exp_bound1, ctx);
             for (w = 0; w < num; w++)
             {
-                do {
-                    fq_nmod_mpoly_randtest_bound(darr[w], state, len2, exp_bound2 + 1, ctx);
-                } while (darr[w]->length == 0);
+                fq_nmod_mpoly_randtest_bound(darr[w], state, len2, exp_bound2 + 1, ctx);
+                if (fq_nmod_mpoly_is_zero(darr[w], ctx))
+                    fq_nmod_mpoly_one(darr[w], ctx);
                 fq_nmod_mpoly_randtest_bound(qarr[w], state, len, exp_bound, ctx);
             }
             fq_nmod_mpoly_randtest_bound(k1, state, len, exp_bound, ctx);
@@ -222,9 +218,9 @@ main(void)
             fq_nmod_mpoly_randtest_bound(f, state, len1, exp_bound1, ctx);
             for (w = 0; w < num; w++)
             {
-                do {
-                    fq_nmod_mpoly_randtest_bound(darr[w], state, len2, exp_bound2 + 1, ctx);
-                } while (darr[w]->length == 0);
+                fq_nmod_mpoly_randtest_bound(darr[w], state, len2, exp_bound2 + 1, ctx);
+                if (fq_nmod_mpoly_is_zero(darr[w], ctx))
+                    fq_nmod_mpoly_one(darr[w], ctx);
                 fq_nmod_mpoly_randtest_bound(qarr[w], state, len, exp_bound, ctx);
             }
             fq_nmod_mpoly_randtest_bound(k1, state, len, exp_bound, ctx);

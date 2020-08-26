@@ -26,7 +26,7 @@ Context Management
 
 .. function:: void fq_ctx_init(fq_ctx_t ctx, const fmpz_t p, slong d, const char *var)
 
-    Initialises the context for prime~`p` and extension degree~`d`,
+    Initialises the context for prime `p` and extension degree `d`,
     with name ``var`` for the generator.  By default, it will try
     use a Conway polynomial; if one is not available, a random
     irreducible polynomial will be used.
@@ -38,8 +38,8 @@ Context Management
 
 .. function:: int _fq_ctx_init_conway(fq_ctx_t ctx, const fmpz_t p, slong d, const char *var)
 
-    Attempts to initialise the context for prime~`p` and extension
-    degree~`d`, with name ``var`` for the generator using a Conway
+    Attempts to initialise the context for prime `p` and extension
+    degree `d`, with name ``var`` for the generator using a Conway
     polynomial for the modulus.
 
     Returns `1` if the Conway polynomial is in the database for the
@@ -53,7 +53,7 @@ Context Management
 
 .. function:: void fq_ctx_init_conway(fq_ctx_t ctx, const fmpz_t p, slong d, const char *var)
 
-    Initialises the context for prime~`p` and extension degree~`d`,
+    Initialises the context for prime `p` and extension degree `d`,
     with name ``var`` for the generator using a Conway polynomial
     for the modulus.
 
@@ -97,12 +97,12 @@ Context Management
 
 .. function:: int fq_ctx_fprint(FILE * file, const fq_ctx_t ctx)
 
-    Prints the context information to {\tt{file}}. Returns 1 for a
+    Prints the context information to ``file``. Returns 1 for a
     success and a negative number for an error.
 
 .. function:: void fq_ctx_print(const fq_ctx_t ctx)
 
-    Prints the context information to {\tt{stdout}}.
+    Prints the context information to ``stdout``.
 
 .. function:: void fq_ctx_randtest(fq_ctx_t ctx)
 
@@ -122,12 +122,12 @@ Memory management
 
 .. function:: void fq_init(fq_t rop, const fq_ctx_t ctx)
 
-    Initialises the element ``rop``, setting its value to~`0`.
+    Initialises the element ``rop``, setting its value to `0`.
 
 .. function:: void fq_init2(fq_t rop, const fq_ctx_t ctx)
 
     Initialises ``poly`` with at least enough space for it to be an element
-    of ``ctx`` and sets it to~`0`.
+    of ``ctx`` and sets it to `0`.
 
 .. function:: void fq_clear(fq_t rop, const fq_ctx_t ctx)
 
@@ -222,33 +222,33 @@ Basic arithmetic
 
 .. function:: void _fq_pow(fmpz *rop, const fmpz *op, slong len, const fmpz_t e, const fq_ctx_t ctx)
 
-    Sets ``(rop, 2*d-1)`` to ``(op,len)`` raised to the power~`e`,
+    Sets ``(rop, 2*d-1)`` to ``(op,len)`` raised to the power `e`,
     reduced modulo `f(X)`, the modulus of ``ctx``.
 
-    Assumes that `e \geq 0` and that ``len`` is positive and at most~`d`.
+    Assumes that `e \geq 0` and that ``len`` is positive and at most `d`.
 
     Although we require that ``rop`` provides space for
     `2d - 1` coefficients, the output will be reduced modulo
-    `f(X)`, which is a polynomial of degree~`d`.
+    `f(X)`, which is a polynomial of degree `d`.
 
     Does not support aliasing.
 
 .. function:: void fq_pow(fq_t rop, const fq_t op, const fmpz_t e, const fq_ctx_t ctx)
 
-    Sets ``rop`` the ``op`` raised to the power~`e`.
+    Sets ``rop`` the ``op`` raised to the power `e`.
 
     Currently assumes that `e \geq 0`.
 
-    Note that for any input ``op``, ``rop`` is set to~`1`
+    Note that for any input ``op``, ``rop`` is set to `1`
     whenever `e = 0`.
 
 .. function:: void fq_pow_ui(fq_t rop, const fq_t op, const ulong e, const fq_ctx_t ctx)
 
-    Sets ``rop`` the ``op`` raised to the power~`e`.
+    Sets ``rop`` the ``op`` raised to the power `e`.
 
     Currently assumes that `e \geq 0`.
 
-    Note that for any input ``op``, ``rop`` is set to~`1`
+    Note that for any input ``op``, ``rop`` is set to `1`
     whenever `e = 0`.
 
 
@@ -257,12 +257,20 @@ Roots
 --------------------------------------------------------------------------------
 
 
+.. function:: int fq_sqrt(fq_t rop, const fq_t op1, const fq_ctx_t ctx)
+
+    Sets ``rop`` to the square root of ``op1`` if it is a square, and return
+    `1`, otherwise return `0`.
+
 .. function:: void fq_pth_root(fq_t rop, const fq_t op1, const fq_ctx_t ctx)
 
     Sets ``rop`` to a `p^{th}` root root of ``op1``.  Currently,
     this computes the root by raising ``op1`` to `p^{d-1}` where
     `d` is the degree of the extension.
 
+.. function:: int fq_is_square(const fq_t op, const fq_ctx_t ctx)
+
+    Return ``1`` if ``op`` is a square.
 
 Output
 --------------------------------------------------------------------------------
@@ -272,7 +280,7 @@ Output
 
     Prints a pretty representation of ``op`` to ``file``.
 
-    In the current implementation, always returns~`1`.  The return code is
+    In the current implementation, always returns `1`.  The return code is
     part of the function's signature to allow for a later implementation to
     return the number of characters printed or a non-positive error code.
 
@@ -280,7 +288,7 @@ Output
 
     Prints a pretty representation of ``op`` to ``stdout``.
 
-    In the current implementation, always returns~`1`.  The return code is
+    In the current implementation, always returns `1`.  The return code is
     part of the function's signature to allow for a later implementation to
     return the number of characters printed or a non-positive error code.
 
@@ -289,14 +297,14 @@ Output
     Prints a representation of ``op`` to ``file``.
 
     For further details on the representation used, see
-    ``fmpz_mod_poly_fprint()``.
+    :func:`fmpz_mod_poly_fprint`.
 
 .. function:: void fq_print(const fq_t op, const fq_ctx_t ctx)
 
     Prints a representation of ``op`` to ``stdout``.
 
     For further details on the representation used, see
-    ``fmpz_mod_poly_print()``.
+    :func:`fmpz_mod_poly_print`.
 
 .. function:: char * fq_get_str(const fq_t op, const fq_ctx_t ctx)
 
@@ -305,7 +313,7 @@ Output
 
 .. function:: char * fq_get_str_pretty(const fq_t op, const fq_ctx_t ctx)
 
-    Returns a pretty representation of the element~``op`` using the
+    Returns a pretty representation of the element ``op`` using the
     null-terminated string ``x`` as the variable name.
 
 
@@ -325,6 +333,10 @@ Randomisation
 
     Generates a random element of `\mathbf{F}_q` which has an
     underlying polynomial with dense coefficients.
+
+.. function:: void fq_rand(fq_t rop, flint_rand_t state, const fq_ctx_t ctx)
+
+    Generates a high quality random element of `\mathbf{F}_q`.
 
 
 Assignments and conversions
@@ -368,14 +380,27 @@ Assignments and conversions
     There is no guarantee this is a multiplicative generator of
     the finite field.
 
+.. function:: void fq_get_fmpz_poly(fmpz_poly_t a, const fq_t b, const fq_ctx_t ctx)
+
+.. function:: void fq_get_fmpz_mod_poly(fmpz_mod_poly_t a, const fq_t b, const fq_ctx_t ctx)
+
+    Set ``a`` to a representative of ``b`` in ``ctx``.
+    The representatives are taken in `(\mathbb{Z}/p\mathbb{Z})[x]/h(x)` where `h(x)` is the defining polynomial in ``ctx``.
+
+.. function:: void fq_set_fmpz_poly(fq_t a, const fmpz_poly_t b, const fq_ctx_t ctx)
+
+.. function:: void fq_set_fmpz_mod_poly(fq_t a, const fmpz_mod_poly_t b, const fq_ctx_t ctx)
+
+    Set ``a`` to the element in ``ctx`` with representative ``b``.
+    The representatives are taken in `(\mathbb{Z}/p\mathbb{Z})[x]/h(x)` where `h(x)` is the defining polynomial in ``ctx``.
+
 .. function:: void fq_get_fmpz_mod_mat(fmpz_mod_mat_t col, const fq_t a, const fq_ctx_t ctx)
 
     Convert ``a`` to a column vector of length ``degree(ctx)``.
 
 .. function:: void fq_set_fmpz_mod_mat(fq_t a, const fmpz_mod_mat_t col, const fq_ctx_t ctx)
 
-    Convert a column vector ``col`` of length ``degree(ctx)`` to
-    an element of ``ctx``.
+    Convert a column vector ``col`` of length ``degree(ctx)`` to an element of ``ctx``.
 
 
 Comparison
@@ -420,7 +445,7 @@ Special functions
     For an element `a \in \mathbf{F}_q`, multiplication by `a` defines
     a `\mathbf{F}_p`-linear map on `\mathbf{F}_q`.  We define the
     trace of `a` as the trace of this map.  Equivalently, if `\Sigma`
-    generates `\Gal(\mathbf{F}_q / \mathbf{F}_p)` then the trace of
+    generates `\operatorname{Gal}(\mathbf{F}_q / \mathbf{F}_p)` then the trace of
     `a` is equal to `\sum_{i=0}^{d-1} \Sigma^i (a)`, where `d =
     \log_{p} q`.
 
@@ -436,7 +461,7 @@ Special functions
     For an element `a \in \mathbf{F}_q`, multiplication by `a` defines
     a `\mathbf{F}_p`-linear map on `\mathbf{F}_q`.  We define the norm
     of `a` as the determinant of this map.  Equivalently, if `\Sigma` generates
-    `\Gal(\mathbf{F}_q / \mathbf{F}_p)` then the trace of `a` is equal to
+    `\operatorname{Gal}(\mathbf{F}_q / \mathbf{F}_p)` then the trace of `a` is equal to
     `\prod_{i=0}^{d-1} \Sigma^i (a)`, where
     `d = \text{dim}_{\mathbf{F}_p}(\mathbf{F}_q)`.
 
@@ -455,7 +480,7 @@ Special functions
     Recall that `\mathbf{F}_q / \mathbf{F}_p` is Galois with Galois group
     `\langle \sigma \rangle`, which is also isomorphic to
     `\mathbf{Z}/d\mathbf{Z}`, where
-    `\sigma \in \Gal(\mathbf{F}_q/\mathbf{F}_p)` is the Frobenius element
+    `\sigma \in \operatorname{Gal}(\mathbf{F}_q/\mathbf{F}_p)` is the Frobenius element
     `\sigma \colon x \mapsto x^p`.
 
 .. function:: int fq_multiplicative_order(fmpz_t ord, const fq_t op, const fq_ctx_t ctx)

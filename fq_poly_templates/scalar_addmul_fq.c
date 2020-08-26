@@ -8,7 +8,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifdef T
@@ -55,6 +55,9 @@ TEMPLATE3(T, poly_scalar_addmul, T) (TEMPLATE(T, poly_t) rop,
         (TEMPLATE(T, is_zero) (x, ctx) || TEMPLATE(T, poly_is_zero) (op, ctx)))
     {
         TEMPLATE(T, poly_fit_length) (rop, op->length, ctx);
+	if (op->length > rop->length)
+            _TEMPLATE(T, vec_zero) (rop->coeffs + rop->length,
+			            op->length - rop->length, ctx);
         _TEMPLATE3(T, poly_scalar_addmul, T) (rop->coeffs, op->coeffs,
                                               op->length, x, ctx);
         _TEMPLATE(T, poly_set_length) (rop, FLINT_MAX(rop->length, op->length),

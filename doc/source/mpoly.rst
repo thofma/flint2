@@ -3,10 +3,31 @@
 **mpoly.h** -- support functions for multivariate polynomials
 ===============================================================================
 
+    An array of type ``ulong *`` or ``fmpz **`` is used to communicate
+    exponent vectors. These exponent vectors must have length equal to the
+    number of variables in the polynomial ring.
+    The element of this exponent vector at index `0`
+    corresponds to the most significant variable in the monomial ordering.
+    For example, if the polynomial is `7*x^2*y+8*y*z+9` and the variables are
+    ordered so that `x>y>z`, the degree function will return `{2,1,1}`.
+    Similarly, the exponent vector of the `0`-index term of this polynomial is
+    `{2,1,0}`, while the `2`-index term has exponent vector `{0,0,0}` and
+    coefficient `9`.
+
+
 
 Orderings
 --------------------------------------------------------------------------------
+.. type:: ordering_t
 
+     An enumeration of supported term orderings.  Currently one of ``ORD_LEX``, 
+     ``ORD_DEGLEX`` or ``ORD_DEGREVLEX``.
+
+.. type:: mpoly_ctx_struct
+          mpoly_ctx_t
+
+     An mpoly_ctx_struct is a structure holding information about the number of
+     variables and the term ordering of an multivariate polynomial.
 
 .. function:: void mpoly_ctx_init(mpoly_ctx_t ctx, slong nvars, const ordering_t ord)
 
@@ -40,7 +61,7 @@ Orderings
     output, corresponding to the given ordering.
 
 
-Monomial arithemtic
+Monomial arithmetic
 --------------------------------------------------------------------------------
 
 
@@ -56,19 +77,11 @@ Monomial arithemtic
 
 .. function:: void mpoly_monomial_sub(ulong * exp_ptr, const ulong * exp2, const ulong * exp3, slong N)
 
-    Set \code{(exp_ptr, N)} to the difference of the monomials \code{(exp2, N)} and \code{(exp3, N)}, assuming \code{bits <= FLINT_BITS}
+    Set ``(exp_ptr, N)`` to the difference of the monomials ``(exp2, N)`` and ``(exp3, N)``, assuming ``bits <= FLINT_BITS``
 
 .. function:: void mpoly_monomial_sub_mp(ulong * exp_ptr, const ulong * exp2, const ulong * exp3, slong N)
 
-    Set \code{(exp_ptr, N)} to the difference of the monomials \code{(exp2, N)} and \code{(exp3, N)}.
-
-.. function:: int mpoly_monomial_overflows(ulong * exp2, slong N, ulong mask)
-
-    Return true if any of the fields of the given monomial ``(exp2, N)`` has
-    overflowed (or is negative). The ``mask`` is a word with the high bit of
-    each field set to 1. In other words, the function returns 1 if any word of
-    ``exp2`` has any of the nonzero bits in ``mask`` set. Assumes that
-    ``bits <= FLINT_BITS``.
+    Set ``(exp_ptr, N)`` to the difference of the monomials ``(exp2, N)`` and ``(exp3, N)``.
 
 .. function:: int mpoly_monomial_overflows(ulong * exp2, slong N, ulong mask)
 
@@ -95,7 +108,7 @@ Monomial arithemtic
 
     Swap the words in ``(exp2, N)`` and ``(exp3, N)``.
 
-.. function:: void mpoly_monomial_mul_si(ulong * exp2, const ulong * exp3, slong N, slong c)
+.. function:: void mpoly_monomial_mul_ui(ulong * exp2, const ulong * exp3, slong N, ulong c)
 
     Set the words of ``(exp2, N)`` to the words of ``(exp3, N)``
     multiplied by ``c``.
@@ -115,7 +128,7 @@ Monomial comparison
 
 .. function:: void mpoly_get_cmpmask(ulong * cmpmask, slong N, slong bits, const mpoly_ctx_t mctx)
 
-    Get the mask ``(cmpmask, N)`` for comparisions.
+    Get the mask ``(cmpmask, N)`` for comparisons.
     ``bits`` should be set to the number of bits in the exponents
     to be compared. Any function that compares monomials should use this
     comparison mask.
@@ -173,12 +186,17 @@ Basic manipulation
     Returns the number of bits required to store ``user_exp`` in packed
     format. The returned number of bits includes space for a zeroed signed bit.
 
-.. function:: flint_bitcnt_t mpoly_exp_bits_required_fmpz(const fmpz * user_exp, const mpoly_ctx_t mctx)
+.. function:: flint_bitcnt_t mpoly_exp_bits_required_ffmpz(const fmpz * user_exp, const mpoly_ctx_t mctx)
 
     Returns the number of bits required to store ``user_exp`` in packed
     format. The returned number of bits includes space for a zeroed signed bit.
 
-.. function:: void mpoly_max_fields_ui(ulong * max_fields, const ulong * poly_exps, slong len, slong bits, const mpoly_ctx_t mctx)
+.. function:: flint_bitcnt_t mpoly_exp_bits_required_pfmpz(fmpz * const * user_exp, const mpoly_ctx_t mctx)
+
+    Returns the number of bits required to store ``user_exp`` in packed
+    format. The returned number of bits includes space for a zeroed signed bit.
+    
+.. function:: void mpoly_max_fields_ui_sp(ulong * max_fields, const ulong * poly_exps, slong len, slong bits, const mpoly_ctx_t mctx)
 
     Compute the field-wise maximum of packed exponents from ``poly_exps``
     of length ``len`` and unpack the result into ``max_fields``.
@@ -227,12 +245,12 @@ Setting and getting monomials
 --------------------------------------------------------------------------------
 
 
-.. function:: int mpoly_termexp_fits_ui(ulong * exps, slong bits, slong n, const mpoly_ctx_t mctx)
+.. function:: int mpoly_term_exp_fits_ui(ulong * exps, slong bits, slong n, const mpoly_ctx_t mctx)
 
     Return whether every entry of the exponent vector of index `n` in
     ``exps`` fits into a ``ulong``.
 
-.. function:: int mpoly_termexp_fits_si(ulong * exps, slong bits, slong n, const mpoly_ctx_t mctx)
+.. function:: int mpoly_term_exp_fits_si(ulong * exps, slong bits, slong n, const mpoly_ctx_t mctx)
 
     Return whether every entry of the exponent vector of index `n` in
     ``exps`` fits into a ``slong``.
@@ -308,7 +326,7 @@ Packing and unpacking monomials
     Given an array of possibly packed exponent vectors ``exp2`` of length
     ``len``, where each field of each exponent vector is packed into the
     given number of bits, return the corresponding array of monomial vectors
-    packed using a factorial numbering scheme. The ``bases'' for the factorial
+    packed using a factorial numbering scheme. The "bases" for the factorial
     numbering scheme are given as an array of integers ``mults``, the first
     entry of which corresponds to the field of least significance in each 
     input exponent vector. Obviously the maximum exponent to be packed must be
@@ -323,7 +341,7 @@ Packing and unpacking monomials
     Given an array of exponent vectors ``e2`` of length ``len`` packed
     using a factorial numbering scheme, unpack the monomials into an array
     ``e1`` of exponent vectors in standard packed format, where each field
-    has the given number of bits. The ``bases'' for the factorial
+    has the given number of bits. The "bases" for the factorial
     numbering scheme are given as an array of integers ``mults``, the first
     entry of which corresponds to the field of least significance in each 
     exponent vector.

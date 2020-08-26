@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2007 David Howden
-    Copyright (C) 2007, 2008, 2009, 2010 William Hart
+    Copyright (C) 2007, 2008, 2009, 2010, 2020 William Hart
     Copyright (C) 2008 Richard Howell-Peak
     Copyright (C) 2011 Fredrik Johansson
     Copyright (C) 2012 Lina Kulakova
@@ -11,7 +11,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -24,14 +24,15 @@
 int
 main(void)
 {
+#if HAVE_PTHREAD && (HAVE_TLS || FLINT_REENTRANT)
     int iter;
+#endif
     FLINT_TEST_INIT(state);
     
     flint_printf("factor_distinct_deg_threaded....");
     fflush(stdout);
 
 #if HAVE_PTHREAD && (HAVE_TLS || FLINT_REENTRANT)
-
     for (iter = 0; iter < 20 * flint_test_multiplier(); iter++)
     {
         nmod_poly_t poly1, poly, q, r, product;
@@ -90,11 +91,8 @@ main(void)
             num_of_deg[nmod_poly_degree(poly)]++;
         }
 
-        if (!(degs = flint_malloc((poly1->length - 1) * sizeof(slong))))
-        {
-            flint_printf("Fatal error: not enough memory.");
-            abort();
-        }
+        degs = (slong *) flint_malloc((poly1->length - 1) * sizeof(slong));
+	
         nmod_poly_factor_init(res);
         nmod_poly_factor_distinct_deg_threaded(res, poly1, &degs);
 

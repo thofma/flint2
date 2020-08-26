@@ -6,12 +6,13 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "nmod_mpoly.h"
 
-void nmod_mpoly_pow_fmpz(nmod_mpoly_t A, const nmod_mpoly_t B,
+
+int nmod_mpoly_pow_fmpz(nmod_mpoly_t A, const nmod_mpoly_t B,
                                   const fmpz_t k, const nmod_mpoly_ctx_t ctx)
 {
     slong i;
@@ -20,31 +21,24 @@ void nmod_mpoly_pow_fmpz(nmod_mpoly_t A, const nmod_mpoly_t B,
     TMP_INIT;
 
     if (fmpz_sgn(k) < 0)
-    {
         flint_throw(FLINT_ERROR, "Negative power in nmod_mpoly_pow_fmpz");
-    }
 
-    if (fmpz_abs_fits_ui(k))
-    {
-        nmod_mpoly_pow_ui(A, B, fmpz_get_ui(k), ctx);
-        return;
-    }
+    if (fmpz_fits_si(k))
+        return nmod_mpoly_pow_ui(A, B, fmpz_get_ui(k), ctx);
 
     /*
         we are raising a polynomial to an unreasonable exponent
         It must either be zero or a monomial with unit coefficient
     */
 
-    if (B->length == WORD(0))
+    if (B->length == 0)
     {
         nmod_mpoly_zero(A, ctx);
-        return;
+        return 1;
     }
 
-    if (B->length != WORD(1))
-    {
-        flint_throw(FLINT_ERROR, "Multinomial in nmod_mpoly_pow_fmpz");
-    }
+    if (B->length != 1)
+        return 0;
 
     TMP_START;
 
@@ -72,4 +66,6 @@ void nmod_mpoly_pow_fmpz(nmod_mpoly_t A, const nmod_mpoly_t B,
         fmpz_clear(maxBfields + i);
 
     TMP_END;
+
+    return 1;
 }

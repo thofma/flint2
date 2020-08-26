@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -17,7 +17,7 @@
 #include "mpn_extras.h"
 
 /* 
-   Divide (arrayg, limbsg) by the positive value gc inplace and
+   Divide (arrayg, limbsg) by the positive value gc in-place and
    return the number of limbs written
 */
 mp_size_t flint_mpn_tdiv_q_fmpz_inplace(mp_ptr arrayg, mp_size_t limbsg, fmpz_t gc)
@@ -72,9 +72,9 @@ _fmpz_poly_gcd_heuristic(fmpz * res, const fmpz * poly1, slong len1,
                                         const fmpz * poly2, slong len2)
 {
    slong bits1, bits2, max_bits, pack_bits, bound_bits, bits_G, bits_Q;
-   ulong limbs1, limbs2, limbsg, pack_limbs, qlimbs;
+   ulong limbs1, limbs2, limbsg, pack_limbs, qlimbs, qlimbs2;
    ulong log_glen, log_length;
-   slong sign1, sign2, glen, qlen;
+   slong sign1, sign2, glen, qlen, qlen2;
 	fmpz_t ac, bc, d, gc;
    fmpz * A, * B, * G, * Q, * t;
    mp_ptr array1, array2, arrayg, q, temp;
@@ -137,7 +137,7 @@ _fmpz_poly_gcd_heuristic(fmpz * res, const fmpz * poly1, slong len1,
       Determine how many bits (pack_bits) to pack into. The bound 
       bound_bits ensures that if G | A and G | B with G primitive 
       then G is the gcd of A and B. The bound is taken from 
-      http://arxiv.org/abs/cs/0206032v1
+      https://arxiv.org/abs/cs/0206032v1
    */
    bits1 = FLINT_ABS(_fmpz_vec_max_bits(A, len1));
    bits2 = FLINT_ABS(_fmpz_vec_max_bits(B, len2));
@@ -202,13 +202,14 @@ _fmpz_poly_gcd_heuristic(fmpz * res, const fmpz * poly1, slong len1,
    if (!fmpz_is_one(gc)) 
       limbsg = flint_mpn_tdiv_q_fmpz_inplace(arrayg, limbsg, gc);
 
-   /* make space for quotient and remainder of first poly by gcd */
+   /* make space for quotient and remainder of both polys by gcd */
    qlimbs = limbs1 - limbsg + 1;
    qlen = FLINT_MIN(len1, (qlimbs*FLINT_BITS)/pack_bits + 1);
-   qlimbs = (qlen*pack_bits - 1)/FLINT_BITS + 1;
+   qlimbs2 = limbs2 - limbsg + 1;
+   qlen2 = FLINT_MIN(len2, (qlimbs2*FLINT_BITS)/pack_bits + 1);
+   qlimbs = (FLINT_MAX(qlen, qlen2)*pack_bits - 1)/FLINT_BITS + 1;
    q = flint_calloc(qlimbs, sizeof(mp_limb_t));
    temp = flint_malloc(limbsg*sizeof(mp_limb_t));
-   
 	divides = 0;
 
    if (flint_mpn_divides(q, array1, limbs1, arrayg, limbsg, temp)) 
@@ -242,20 +243,18 @@ _fmpz_poly_gcd_heuristic(fmpz * res, const fmpz * poly1, slong len1,
          if (flint_mpn_divides(q, array2, limbs2, arrayg, limbsg, temp)) 
 	      {
             /* unpack quotient of second poly by gcd */
-            qlimbs = limbs2 - limbsg + 1;
-            qlen = FLINT_MIN(len2, (qlimbs*FLINT_BITS - 1)/pack_bits + 1);
-            _fmpz_poly_bit_unpack(Q, qlen, q, pack_bits, 0);
-            while (Q[qlen - 1] == 0) qlen--;
+            _fmpz_poly_bit_unpack(Q, qlen2, q, pack_bits, 0);
+            while (Q[qlen2 - 1] == 0) qlen2--;
 			
 			/* check if we really need to multiply out to check for exact quotient */
-            bits_Q = FLINT_ABS(_fmpz_vec_max_bits(Q, qlen));
-		    log_length = FLINT_MIN(log_glen, FLINT_BIT_COUNT(qlen));
+            bits_Q = FLINT_ABS(_fmpz_vec_max_bits(Q, qlen2));
+		    log_length = FLINT_MIN(log_glen, FLINT_BIT_COUNT(qlen2));
 
 			/* allow one bit for signs */
 			divides = (bits_G + bits_Q + log_length < pack_bits);
        
             if (!divides) /* we need to multiply out */
-               divides = multiplies_out(B, len2, Q, qlen, G, glen, sign1, t);
+               divides = multiplies_out(B, len2, Q, qlen2, G, glen, sign1, t);
 			} 
 		} 
 

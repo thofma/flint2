@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifdef T
@@ -102,6 +102,18 @@ main(void)
             TEMPLATE(T, mat_print) (C, ctx);
             printf("\n");
             abort();
+        }
+
+        if (n == m)
+        {
+            TEMPLATE(T, mat_mul) (C, A, B, ctx);
+	    TEMPLATE(T, mat_mul) (A, A, B, ctx);
+
+            if (!TEMPLATE(T, mat_equal) (A, C, ctx))
+            {
+                flint_printf("FAIL: aliasing failed\n");
+                flint_abort();
+            }
         }
 
         TEMPLATE(T, mat_clear) (A, ctx);

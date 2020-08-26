@@ -7,7 +7,7 @@ FLINT: Fast Library for Number Theory
 ======================================
 
 Welcome to FLINT's documentation! FLINT is a C library for doing number theory,
-maintained by William Hart.
+maintained by William Hart and Fredrik Johansson.
 
 * Source code on GitHub: https://github.com/wbhart/flint2
 * Issue tracker: https://github.com/wbhart/flint2/issues
@@ -15,6 +15,22 @@ maintained by William Hart.
 
 FLINT is free software distributed under the
 GNU Lesser General Public License (LGPL), version 2.1 or later.
+
+Introduction
+------------
+
+.. toctree::
+   :maxdepth: 1
+
+   introduction.rst
+   building.rst
+   bug_reporting.rst
+   contributors.rst
+   examples.rst
+   macros.rst
+   memory.rst
+   portability.rst
+   threading.rst
 
 General utilities
 -----------------
@@ -24,7 +40,7 @@ General utilities
 
    flint.rst
    profiler.rst
-   threadpool.rst
+   thread_pool.rst
    perm.rst
    mpoly.rst
 
@@ -77,6 +93,7 @@ Integers mod n
    nmod_poly_mat.rst
    nmod_poly_factor.rst
    nmod_mpoly.rst
+   fmpz_mod.rst
    fmpz_mod_poly.rst
    fmpz_mod_poly_factor.rst
    fmpz_mod_mat.rst
@@ -103,6 +120,7 @@ Finite fields
    fq_nmod_poly.rst
    fq_nmod_poly_factor.rst
    fq_nmod_embed.rst
+   fq_nmod_mpoly.rst
 
 .. toctree::
    :maxdepth: 1
@@ -139,3 +157,19 @@ Floating-point support code
    mpfr_vec.rst
    mpfr_mat.rst
 
+C++ Interface
+-----------------------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   flintxx.rst
+   flintxx_functions.rst
+
+References
+----------------
+
+.. toctree::
+   :maxdepth: 1
+
+   references.rst

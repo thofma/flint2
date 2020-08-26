@@ -8,7 +8,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <string.h>
@@ -55,7 +55,7 @@ main(void)
         fmpq_t a, a2;
         mpq_t b;
         int ans, base;
-        char *str1, *str2, *str3;
+        char *str1, *str2;
 
         fmpq_init(a);
         fmpq_init(a2);

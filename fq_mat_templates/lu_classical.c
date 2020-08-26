@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifdef T
@@ -76,7 +76,10 @@ TEMPLATE(T, mat_lu_classical) (slong * P,
         if (TEMPLATE(T, mat_pivot) (A, P, row, col, ctx) == 0)
         {
             if (rank_check)
-                return 0;
+            {
+                rank = 0;
+                goto cleanup;
+            }
             col++;
             continue;
         }
@@ -105,6 +108,7 @@ TEMPLATE(T, mat_lu_classical) (slong * P,
         col++;
     }
 
+cleanup:
     TEMPLATE(T, clear) (d, ctx);
     TEMPLATE(T, clear) (e, ctx);
     TEMPLATE(T, clear) (neg_e, ctx);

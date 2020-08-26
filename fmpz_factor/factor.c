@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -83,7 +83,7 @@ fmpz_factor(fmpz_factor_t factor, const fmpz_t n)
             if (flint_mpn_divisible_1_p(xd, xsize, p))
             {
                 /* TODO: when searching for squarefree numbers
-                   (Moebius function, etc), we can flint_abort here. */
+                   (Moebius function, etc), we can abort here. */
                 xsize = flint_mpn_divexact_1(xd, xsize, p);
                 exp = 2;
             }
@@ -111,10 +111,10 @@ fmpz_factor(fmpz_factor_t factor, const fmpz_t n)
             fmpz_t n2;
             __mpz_struct * data;
 
-            fmpz_init2(n2, FLINT_BITS*xsize);
+            fmpz_init2(n2, xsize);
 
             data = _fmpz_promote(n2);
-            mpn_copyi(data->_mp_d, xd, xsize);
+            flint_mpn_copyi(data->_mp_d, xd, xsize);
             data->_mp_size = xsize;
             
             fmpz_factor_no_trial(factor, n2);

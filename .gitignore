@@ -10,10 +10,11 @@
 */.deps/*
 fmpz/fmpz.c
 build/
-config.h
+flint-config.h
+config.log
 fft_tuning.h
 fmpz-conversions.h
-Makefile
+/Makefile
 doc/build
 doc/latex/flint-manual.*
 !doc/latex/flint-manual.tex
@@ -24,6 +25,7 @@ libflint*
 *.pyc
 /build.vc14/build_tests/arith/test/*.obj
 dll/*
+local/
 lib/*
 build.vc14/flint-tests*.sln
 build.vc14/dll_flint/x64
@@ -41,3 +43,4 @@ build.vc14/flint-profiles*.sln
 *.sdf
 build.vc12
 build
+flint2

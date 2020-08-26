@@ -23,7 +23,7 @@ Memory management
 .. function:: void fmpz_poly_init(fmpz_poly_t poly)
 
     Initialises ``poly`` for use, setting its length to zero.  
-    A corresponding call to ``fmpz_poly_clear()`` must be made after 
+    A corresponding call to :func:`fmpz_poly_clear` must be made after 
     finishing with the ``fmpz_poly_t`` to free the memory used by 
     the polynomial.
 
@@ -215,27 +215,27 @@ Randomisation
 
     Sets `f` to a random polynomial with up to the given length and where 
     each coefficient has up to the given number of bits. The coefficients 
-    are signed randomly. One must call ``flint_randinit()`` before 
+    are signed randomly. One must call :func:`flint_randinit` before 
     calling this function.
 
 .. function:: void fmpz_poly_randtest_unsigned(fmpz_poly_t f, flint_rand_t state, slong len, flint_bitcnt_t bits)
 
     Sets `f` to a random polynomial with up to the given length and where
     each coefficient has up to the given number of bits. One must call 
-    ``flint_randinit()`` before calling this function.
+    :func:`flint_randinit` before calling this function.
 
 .. function:: void fmpz_poly_randtest_not_zero(fmpz_poly_t f, flint_rand_t state, slong len, flint_bitcnt_t bits)
 
-    As for ``fmpz_poly_randtest()`` except that ``len`` and bits may 
+    As for :func:`fmpz_poly_randtest` except that ``len`` and bits may 
     not be zero and the polynomial generated is guaranteed not to be the 
-    zero polynomial.  One must call ``flint_randinit()`` before 
+    zero polynomial.  One must call :func:`flint_randinit` before 
     calling this function.
 
 .. function:: void fmpz_poly_randtest_no_real_root(fmpz_poly_t p, flint_rand_t state, slong len, flint_bitcnt_t bits)
 
     Sets ``p`` to a random polynomial without any real root, whose
     length is up to ``len`` and where each coefficient has up to the
-    given number of bits. One must call ``flint_randinit()`` before
+    given number of bits. One must call :func:`flint_randinit` before
     calling this function.
 
 
@@ -338,7 +338,7 @@ Comparison
     Returns `1` is the polynomial is the constant polynomial `\pm 1`, 
     and `0` otherwise.
 
-.. function:: int fmpz_poly_is_x(const fmpz_poly_t poly)
+.. function:: int fmpz_poly_is_gen(const fmpz_poly_t poly)
 
     Returns `1` if the polynomial is the degree `1` polynomial `x`, and `0` 
     otherwise.
@@ -505,7 +505,7 @@ Scalar absolute value, multiplication and division
 
 .. function:: void _fmpz_poly_scale_2exp(fmpz * pol, slong len, slong k)
 
-    Scale ``(pol, len)`` to `p(2^k X)` inplace and divide by the
+    Scale ``(pol, len)`` to `p(2^k X)` in-place and divide by the
     2-content (so that the gcd of coefficients is odd). If ``k``
     is negative the polynomial is multiplied by `2^{kd}`.
 
@@ -738,6 +738,66 @@ Multiplication
     precisely `n` coefficients in length, zero padded if necessary.  The 
     remaining `n - 1` coefficients may be arbitrary.
 
+FFT precached multiplication
+--------------------------------------------------------------------------------
+
+
+.. function:: void fmpz_poly_mul_SS_precache_init(fmpz_poly_mul_precache_t pre, slong len1, slong bits1, const fmpz_poly_t poly2)
+
+    Precompute the FFT of ``poly2`` to enable repeated multiplication of
+    ``poly2`` by polynomials whose length does not exceed ``len1`` and
+    whose number of bits per coefficient does not exceed ``bits1``.
+
+    The value ``bits1`` may be negative, i.e. it may be the result of
+    calling ``fmpz_poly_max_bits``. The function only considers the
+    absolute value of ``bits1``.
+
+    Suppose ``len2`` is the length of ``poly2`` and
+    ``len = len1 + len2 - 1`` is the maximum output length of a polynomial
+    multiplication using ``pre``. Then internally ``len`` is rounded up to
+    a power of two, `2^n` say. The truncated FFT algorithm is used to smooth
+    performance but note that it can only do this in the range
+    `(2^{n-1}, 2^n]`. Therefore, it may be more efficient to recompute `pre`
+    for cases where the output length will fall below `2^{n-1} + 1`. Otherwise
+    the implementation will zero pad them up to that length.
+
+    Note that the Schoenhage-Strassen algorithm is only efficient for
+    polynomials with relatively large coefficients relative to the length of
+    the polynomials.
+
+    Also note that there are no restrictions on the polynomials. In particular
+    the polynomial whose FFT is being precached does not have to be either
+    longer or shorter than the polynomials it is to be multiplied by.
+
+.. function:: void fmpz_poly_mul_precache_clear(fmpz_poly_mul_precache_t pre)
+
+    Clear the space allocated by ``fmpz_poly_mul_SS_precache_init``.
+
+.. function:: void _fmpz_poly_mullow_SS_precache(fmpz * output, const fmpz * input1, slong len1, fmpz_poly_mul_precache_t pre, slong trunc)
+
+    Write into ``output`` the first ``trunc`` coefficients of
+    the polynomial ``(input1, len1)`` by the polynomial whose FFT was precached
+    by ``fmpz_poly_mul_SS_precache_init`` and stored in ``pre``.
+
+    For performance reasons it is recommended that all polynomials be truncated
+    to at most ``trunc`` coefficients if possible.
+
+.. function:: void fmpz_poly_mullow_SS_precache(fmpz_poly_t res, const fmpz_poly_t poly1, fmpz_poly_mul_precache_t pre, slong n)
+
+    Set ``res`` to the product of ``poly1`` by the polynomial whose FFT was
+    precached by ``fmpz_poly_mul_SS_precache_init`` (and stored in pre). The
+    result is truncated to `n` coefficients (and normalised).
+
+    There are no restrictions on the length of ``poly1`` other than those given
+    in the call to ``fmpz_poly_mul_SS_precache_init``.
+
+.. function:: void fmpz_poly_mul_SS_precache(fmpz_poly_t res, const fmpz_poly_t poly1, fmpz_poly_precache_t pre)
+
+    Set ``res`` to the product of ``poly1`` by the polynomial whose FFT was
+    precached by ``fmpz_poly_mul_SS_precache_init`` (and stored in pre).
+
+    There are no restrictions on the length of ``poly1`` other than those given
+    in the call to ``fmpz_poly_mul_SS_precache_init``.
 
 Squaring
 --------------------------------------------------------------------------------
@@ -921,7 +981,7 @@ Powering
 .. function:: void _fmpz_poly_pow_binexp(fmpz * res, const fmpz * poly, slong len, ulong e)
 
     Sets ``res = poly^e`` using left-to-right binary exponentiation as 
-    described in \citep[p. 461]{Knu1997}.
+    described in [p. 461][Knu1997]_.
     
     Assumes that ``len > 0``, ``e > 1``.  Assumes that ``res`` is 
     an array of length at least ``e*(len - 1) + 1``.  Does not support 
@@ -1072,7 +1132,7 @@ Greatest common divisor
     ``poly2``, normalised to have non-negative leading coefficient.
 
     This function uses the subresultant algorithm as described 
-    in \citep[Algorithm 3.3.1]{Coh1996}.
+    in [Algorithm 3.3.1][Coh1996]_.
 
 .. function:: int _fmpz_poly_gcd_heuristic(fmpz * res, const fmpz * poly1, slong len1, const fmpz * poly2, slong len2)
 
@@ -1233,7 +1293,7 @@ Greatest common divisor
     of the two polynomials is zero.
 
     This function uses the modular algorithm described 
-    in \citep{Col1971}.
+    in [Col1971]_.
 
 .. function:: void fmpz_poly_resultant_modular_div(fmpz_t res, const fmpz_poly_t poly1, const fmpz_poly_t poly2, const fmpz_t div, slong nbits)
 
@@ -1265,7 +1325,7 @@ Greatest common divisor
     of the two polynomials is zero.
 
     This function uses the algorithm described 
-    in \citep[Algorithm 3.3.7]{Coh1996}.
+    in [Algorithm 3.3.7][Coh1996]_.
 
 .. function:: void _fmpz_poly_resultant(fmpz_t res, const fmpz * poly1, slong len1, const fmpz * poly2, slong len2)
 
@@ -1300,9 +1360,9 @@ Discriminant
 .. function:: void fmpz_poly_discriminant(fmpz_t res, const fmpz_poly_t poly)
 
     Set ``res`` to the discriminant of ``poly``. We normalise the
-    discriminant so that `\operatorname{disc}(f) = (-1)^(n(n-1)/2)
+    discriminant so that `\operatorname{disc}(f) = (-1)^{(n(n-1)/2)}
     \operatorname{res}(f, f')/\operatorname{lc}(f)`, thus
-    `\operatorname{disc}(f) = \operatorname{lc}(f)^(2n - 2) \prod_{i < j} (r_i
+    `\operatorname{disc}(f) = \operatorname{lc}(f)^{(2n - 2)} \prod_{i < j} (r_i
     - r_j)^2`, where `\operatorname{lc}(f)` is the leading coefficient of `f`,
     `n` is the degree of `f` and `r_i` are the roots of `f`.
 
@@ -1549,7 +1609,7 @@ Euclidean division
     temporary array ``temp`` of length `2 \operatorname{len}(B) - 1`.  Does not support 
     any aliasing.
 
-    For further details, see \citep{Mul2000}.
+    For further details, see [Mul2000]_.
 
     If the flag ``exact`` is `1`, the function stops if an inexact division
     is encountered, upon which the function will return `0`. If no inexact
@@ -1577,7 +1637,7 @@ Euclidean division
     For ordinary use set the flag ``exact`` to `0`. In this case, no checks
     or early aborts occur and the function always returns `1`.
 
-.. function:: fmpz_poly_div_divconquer(fmpz_poly_t Q, const fmpz_poly_t A, const fmpz_poly_t B)
+.. function:: void fmpz_poly_div_divconquer(fmpz_poly_t Q, const fmpz_poly_t A, const fmpz_poly_t B)
 
     Computes the quotient `Q` of `A` divided by `B`.
 
@@ -1787,7 +1847,11 @@ Divisibility testing
     This function is currently unoptimised and provided for convenience
     only.
 
+.. function:: slong fmpz_poly_remove(fmpz_poly_t res, const fmpz_poly_t poly1, const fmpz_poly_t poly2)
 
+    Set ``res`` to ``poly1`` divided by the highest power of ``poly2`` that
+    divides it and return the power. The divisor ``poly2`` must not be zero or
+    `\pm 1`, otherwise an exception is raised.
 
 Division mod p
 --------------------------------------------------------------------------------
@@ -1858,15 +1922,7 @@ Power series division
 
 .. function:: void _fmpz_poly_div_series_basecase(fmpz * Q, const fmpz * A, slong Alen, const fmpz * B, slong Blen, slong n)
 
-    Divides ``(A, Alen)`` by ``(B, Blen)`` as power series over `\mathbb{Z}`,
-    assuming `B` has constant term `\pm 1` and `n \geq 1`.
-    Aliasing is not supported.
-
 .. function:: void _fmpz_poly_div_series_divconquer(fmpz * Q, const fmpz * A, slong Alen, const fmpz * B, slong Blen, slong n)
-
-    Divides ``(A, Alen)`` by ``(B, Blen)`` as power series over `\mathbb{Z}`,
-    assuming `B` has constant term `\pm 1` and `n \geq 1`.
-    Aliasing is not supported.
 
 .. function:: void _fmpz_poly_div_series(fmpz * Q, const fmpz * A, slong Alen, const fmpz * B, slong Blen, slong n)
 
@@ -1876,20 +1932,9 @@ Power series division
 
 .. function:: void fmpz_poly_div_series_basecase(fmpz_poly_t Q, const fmpz_poly_t A, const fmpz_poly_t B, slong n)
 
-    Performs power series division in `\mathbb{Z}[[x]] / (x^n)`.  The function 
-    considers the polynomials `A` and `B` as power series of length `n` 
-    starting with the constant terms.  The function assumes that `B` has 
-    constant term `\pm 1` and `n \geq 1`.
+.. function:: void fmpz_poly_div_series_divconquer(fmpz_poly_t Q, const fmpz_poly_t A, const fmpz_poly_t B, slong n)
 
-.. function:: void fmpz_poly_div_series_basecase(fmpz_poly_t Q, const fmpz_poly_t A, const fmpz_poly_t B, slong n)
-
-    Performs power series division in `\mathbb{Z}[[x]] / (x^n)`.  The function
-    considers the polynomials `A` and `B` as power series of length `n`
-    starting with the constant terms.  The function assumes that `B` has
-    constant term `\pm 1` and `n \geq 1`.
-
-.. function:: void fmpz_poly_div_series(fmpz_poly_t Q, const fmpz_poly_t A, const fmpz_po
-ly_t B, slong n)
+.. function:: void fmpz_poly_div_series(fmpz_poly_t Q, const fmpz_poly_t A, const fmpz_poly_t B, slong n)
 
     Performs power series division in `\mathbb{Z}[[x]] / (x^n)`.  The function
     considers the polynomials `A` and `B` as power series of length `n`
@@ -1922,7 +1967,7 @@ Pseudo division
     that `\ell^d A = Q B + R`.  This function is used for simulating division 
     over `\mathbb{Q}`.
 
-.. function:: void _fmpz_poly_pseudo_divrem_divconquer(fmpz * Q, fmpz * R, ulong * d, const fmpz * A, slong lenB, const fmpz * B, slong lenB, const fmpz_preinvn_t inv)
+.. function:: void _fmpz_poly_pseudo_divrem_divconquer(fmpz * Q, fmpz * R, ulong * d, const fmpz * A, slong lenA, const fmpz * B, slong lenB, const fmpz_preinvn_t inv)
 
     Computes ``(Q, lenA - lenB + 1)``, ``(R, lenA)`` such that 
     `\ell^d A = B Q + R`, only setting the bottom `\operatorname{len}(B) - 1` coefficients 
@@ -1969,7 +2014,7 @@ Pseudo division
 
 .. function:: void fmpz_poly_pseudo_rem_cohen(fmpz_poly_t R, const fmpz_poly_t A, const fmpz_poly_t B)
 
-    This is a variant of ``fmpz_poly_pseudo_rem()`` which computes 
+    This is a variant of :func:`fmpz_poly_pseudo_rem` which computes 
     polynomials `Q` and `R` such that `\ell^d A = B Q + R`, but only 
     returns `R`.  However, the value of `d` is fixed at 
     `\max{\{0, \operatorname{len}(A) - \operatorname{len}(B) + 1\}}`.
@@ -1980,7 +2025,7 @@ Pseudo division
     e.g.\ when `\operatorname{len}(B) < 32`.
 
     This function uses the algorithm described 
-    in \citep[Algorithm 3.1.2]{Coh1996}.
+    in [Algorithm 3.1.2][Coh1996]_.
 
 .. function:: void _fmpz_poly_pseudo_divrem(fmpz * Q, fmpz * R, ulong * d, const fmpz * A, slong lenA, const fmpz * B, slong lenB, const fmpz_preinvn_t inv)
 
@@ -2138,7 +2183,7 @@ Evaluation
     Evaluates ``(poly, len)`` at the value `a` modulo `n` and 
     returns the result.  The last argument ``ninv`` must be set 
     to the precomputed inverse of `n`, which can be obtained using 
-    the function ``n_preinvert_limb()``.
+    the function :func:`n_preinvert_limb`.
 
 .. function:: mp_limb_t fmpz_poly_evaluate_mod(const fmpz_poly_t poly, mp_limb_t a, mp_limb_t n)
 
@@ -2178,6 +2223,15 @@ Evaluation
     efficiently or in a numerically stable way. It is currently only used in
     Flint for quick and dirty evaluations of polynomials with all coefficients
     positive.
+
+.. function:: double _fmpz_poly_evaluate_horner_d_2exp2(slong * exp, const fmpz * poly, slong n, double d, slong dexp, ulong prec_in) 
+
+    Evaluate ``poly`` at ``d*2^dexp``. Return the result as a double
+    and an exponent ``exp`` combination. No attempt is made to do this
+    efficiently or in a numerically stable way. It is currently only used in
+    Flint for quick and dirty evaluations of polynomials with all coefficients
+    positive. If ``prec_in`` is not set to `0` the evaluation will be done to
+    the supplied precision only.
 
 
 Newton basis
@@ -2278,6 +2332,28 @@ Composition
     sets `f(t) = g(h(t))`.
 
 
+Inflation and deflation
+--------------------------------------------------------------------------------
+
+
+.. function:: void fmpz_poly_inflate(fmpz_poly_t result, const fmpz_poly_t input, ulong inflation)
+
+    Sets ``result`` to the inflated polynomial `p(x^n)` where
+    `p` is given by ``input`` and `n` is given by ``inflation``.
+
+.. function:: void fmpz_poly_deflate(fmpz_poly_t result, const fmpz_poly_t input, ulong deflation)
+
+    Sets ``result`` to the deflated polynomial `p(x^{1/n})` where
+    `p` is given by ``input`` and `n` is given by ``deflation``.
+    Requires `n > 0`.
+
+.. function:: ulong fmpz_poly_deflation(const fmpz_poly_t input)
+
+    Returns the largest integer by which ``input`` can be deflated.
+    As special cases, returns 0 if ``input`` is the zero polynomial
+    and 1 of ``input`` is a constant polynomial.
+
+
 Taylor shift
 --------------------------------------------------------------------------------
 
@@ -2305,13 +2381,13 @@ Taylor shift
 
     Performs the Taylor shift composing ``poly`` by `x+c` in-place.
     Uses a multimodular algorithm, distributing the computation
-    across ``flint_get_num_threads()`` threads.
+    across :func:`flint_get_num_threads` threads.
 
 .. function:: void fmpz_poly_taylor_shift_multi_mod(fmpz_poly_t g, const fmpz_poly_t f, const fmpz_t c)
 
     Performs the Taylor shift composing ``f`` by `x+c`.
     Uses a multimodular algorithm, distributing the computation
-    across ``flint_get_num_threads()`` threads.
+    across :func:`flint_get_num_threads` threads.
 
 .. function:: void _fmpz_poly_taylor_shift(fmpz * poly, const fmpz_t c, slong n)
 
@@ -2358,7 +2434,7 @@ Power series composition
     space for ``n`` coefficients. Does not support aliasing between any
     of the inputs and the output.
 
-    This implementation uses Brent-Kung algorithm 2.1 \cite{BrentKung1978}.
+    This implementation uses Brent-Kung algorithm 2.1 [BrentKung1978]_.
 
 .. function:: void fmpz_poly_compose_series_brent_kung(fmpz_poly_t res, const fmpz_poly_t poly1, const fmpz_poly_t poly2, slong n)
 
@@ -2366,7 +2442,7 @@ Power series composition
     modulo `x^n`, where the constant term of ``poly2`` is required
     to be zero.
 
-    This implementation uses Brent-Kung algorithm 2.1 \cite{BrentKung1978}.
+    This implementation uses Brent-Kung algorithm 2.1 [BrentKung1978]_.
 
 .. function:: void _fmpz_poly_compose_series(fmpz * res, const fmpz * poly1, slong len1, const fmpz * poly2, slong len2, slong n)
 
@@ -2445,7 +2521,7 @@ Power series reversion
     aliased, and ``Qlen`` must be at least 2.
     It is required that `Q_0 = 0` and `Q_1 = \pm 1`.
 
-    This implementation uses Newton iteration \cite{BrentKung1978}.
+    This implementation uses Newton iteration [BrentKung1978]_.
 
 .. function:: void fmpz_poly_revert_series_newton(fmpz_poly_t Qinv, const fmpz_poly_t Q, slong n)
 
@@ -2454,7 +2530,7 @@ Power series reversion
     `Q(Q^{-1}(x)) = Q^{-1}(Q(x)) = x \bmod x^n`.
     It is required that `Q_0 = 0` and `Q_1 = \pm 1`.
 
-    This implementation uses Newton iteration \cite{BrentKung1978}.
+    This implementation uses Newton iteration [BrentKung1978]_.
 
 .. function:: void _fmpz_poly_revert_series(fmpz * Qinv, const fmpz * Q, slong Qlen, slong n)
 
@@ -2654,7 +2730,7 @@ Signature
     exception may be raised.
 
     This function uses the algorithm described 
-    in \citep[Algorithm 4.1.11]{Coh1996}.
+    in [Algorithm 4.1.11][Coh1996]_.
 
 
 Hensel lifting
@@ -2728,14 +2804,14 @@ Hensel lifting
     Given polynomials such that `f = gh \pmod p` and `ag + bh = 1 \pmod p`, 
     lifts only the factors `g` and `h` modulo `P = p p_1`.
 
-    See ``fmpz_poly_hensel_lift()``.
+    See :func:`fmpz_poly_hensel_lift`.
 
 .. function:: void fmpz_poly_hensel_lift_only_inverse(fmpz_poly_t Aout, fmpz_poly_t Bout, const fmpz_poly_t G, const fmpz_poly_t H, const fmpz_poly_t a, const fmpz_poly_t b, const fmpz_t p, const fmpz_t p1)
 
     Given polynomials such that `f = gh \pmod p` and `ag + bh = 1 \pmod p`, 
     lifts only the cofactors `a` and `b` modulo `P = p p_1`.
 
-    See ``fmpz_poly_hensel_lift()``.
+    See :func:`fmpz_poly_hensel_lift`.
 
 .. function:: void fmpz_poly_hensel_lift_tree_recursive(slong *link, fmpz_poly_t *v, fmpz_poly_t *w, fmpz_poly_t f, slong j, slong inv, const fmpz_t p0, const fmpz_t p1)
 
@@ -2763,9 +2839,9 @@ Hensel lifting
     wish to lift, made monic mod `p^b`. As usual, ``(link, v, w)`` is an 
     initialised tree.
 
-    This starts the recursion on lifting the \emph{product tree} for lifting 
+    This starts the recursion on lifting the *product tree* for lifting 
     from `p^{e_0}` to `p^{e_1}`. The value of ``inv`` corresponds to that 
-    given for the function ``fmpz_poly_hensel_lift_tree_recursive()``. We 
+    given for the function :func:`fmpz_poly_hensel_lift_tree_recursive`. We 
     set `r` to the number of local factors of `f`.
 
     In terms of the notation, above `P = p^{e_1}`, `p_0 = p^{e_0}` and 
@@ -2789,7 +2865,7 @@ Hensel lifting
     later. The product of local factors must be squarefree.
 
     The return value is an exponent which must be passed to the function 
-    ``_fmpz_poly_hensel_continue_lift()`` as ``prev_exp`` if the 
+    :func:`_fmpz_poly_hensel_continue_lift` as ``prev_exp`` if the 
     Hensel lifting is to be resumed.
 
     Currently, supports the case when `N = 1` for convenience, 
@@ -2803,8 +2879,8 @@ Hensel lifting
 
     It lifts from ``curr`` to `N`. It also requires ``prev`` 
     (to lift the cofactors) given as the return value of the function 
-    ``_fmpz_poly_hensel_start_lift()`` or the function
-    ``_fmpz_poly_hensel_continue_lift()``. The current lifted factors 
+    :func:`_fmpz_poly_hensel_start_lift` or the function
+    :func:`_fmpz_poly_hensel_continue_lift`. The current lifted factors 
     are supplied in ``lifted_fac`` and upon return are updated
     there. As usual ``link``, ``v``, and ``w`` describe the 
     current Hensel tree, `r` is the number of local factors and `p` is 
@@ -2937,7 +3013,7 @@ Some examples of the ``_pretty`` representation are::
     Reads a polynomial in pretty format from ``stdin``.
 
     For further details, see the documentation for the function 
-    ``fmpz_poly_fread_pretty()``.
+    :func:`fmpz_poly_fread_pretty`.
 
 .. function:: int fmpz_poly_fread(FILE * file, fmpz_poly_t poly)
 
@@ -3040,31 +3116,12 @@ Products
     `p_i/q_i` being given by ``xs``.
 
 
-
-Newton basis conversion
---------------------------------------------------------------------------------
-
-
-.. function:: void _fmpz_poly_monomial_to_newton(fmpz * poly, const fmpz * roots, slong n)
-
-    Converts the polynomial in-place from its coefficients in the
-    monomial basis to the Newton basis `1, (x-r_0), (x-r_0)(x-r_1), \ldots`.
-    Uses Horner's rule, requiring `O(n^2)` operations.
-
-.. function:: void _fmpz_poly_newton_to_monomial(fmpz * poly, const fmpz * roots, slong n)
-
-    Converts the polynomial in-place from its coefficients in the
-    Newton basis `1, (x-r_0), (x-r_0)(x-r_1), \ldots` to the monomial
-    basis. Uses repeated polynomial division, requiring `O(n^2)` operations.
-
-
 Roots
 --------------------------------------------------------------------------------
 
 
 .. function:: void _fmpz_poly_bound_roots(fmpz_t bound, const fmpz * poly, slong len)
-
-.. function:: void fmpz_poly_bound_roots(fmpz_t bound, const fmpz_poly_t poly)
+              void fmpz_poly_bound_roots(fmpz_t bound, const fmpz_poly_t poly)
 
     Computes a nonnegative integer ``bound`` that bounds the absolute
     value of all complex roots of ``poly``. Uses Fujiwara's bound
@@ -3131,7 +3188,7 @@ Minimal polynomials
     in reverse order, since  `\Phi_n(x)` is a palindrome for `n \ne 1`.
 
     We use the sparse power series algorithm described as Algorithm 4
-    \cite{ArnoldMonagan2011}. The algorithm is based on the identity
+    [ArnoldMonagan2011]_. The algorithm is based on the identity
 
     .. math ::
 
@@ -3144,7 +3201,7 @@ Minimal polynomials
 
     To improve efficiency for small `n`, we treat the ``fmpz``
     coefficients as machine integers when there is no risk of overflow.
-    The following bounds are given in Table 6 of \cite{ArnoldMonagan2011}:
+    The following bounds are given in Table 6 of [ArnoldMonagan2011]_:
 
     For `n < 10163195`, the largest coefficient in any `\Phi_n(x)`
     has 27 bits, so machine arithmetic is safe on 32 bits.
@@ -3170,9 +3227,15 @@ Minimal polynomials
     We factor `n` into `n = qs` where `q` is squarefree,
     and compute `\Phi_q(x)`. Then `\Phi_n(x) = \Phi_q(x^s)`.
 
-.. function:: void _fmpz_poly_cos_minpoly(fmpz * coeffs, ulong n)
+.. function:: ulong _fmpz_poly_is_cyclotomic(const fmpz * poly, slong len)
+              ulong fmpz_poly_is_cyclotomic(fmpz_poly_t poly)
 
-.. function:: void fmpz_poly_cos_minpoly(fmpz_poly_t poly, ulong n)
+    If ``poly`` is a cyclotomic polynomial, returns the index `n` of this
+    cyclotomic polynomial. If ``poly`` is not a cyclotomic polynomial,
+    returns 0.
+
+.. function:: void _fmpz_poly_cos_minpoly(fmpz * coeffs, ulong n)
+              void fmpz_poly_cos_minpoly(fmpz_poly_t poly, ulong n)
 
     Sets ``poly`` to the minimal polynomial of `2 \cos(2 \pi / n)`.
     For suitable choice of `n`, this gives the minimal polynomial
@@ -3188,9 +3251,8 @@ Minimal polynomials
     the output to be the constant polynomial 1.
 
 .. function:: void _fmpz_poly_swinnerton_dyer(fmpz * coeffs, ulong n)
-
-.. function:: void fmpz_poly_swinnerton_dyer(fmpz_poly_t poly, ulong n)
-
+              void fmpz_poly_swinnerton_dyer(fmpz_poly_t poly, ulong n)
+             
     Sets ``poly`` to the Swinnerton-Dyer polynomial `S_n`, defined as
     the integer polynomial
     `S_n = \prod (x \pm \sqrt{2} \pm \sqrt{3} \pm \sqrt{5} \pm \ldots \pm \sqrt{p_n})`
@@ -3204,16 +3266,14 @@ Orthogonal polynomials
 --------------------------------------------------------------------------------
 
 .. function:: void _fmpz_poly_chebyshev_t(fmpz * coeffs, ulong n)
-
-.. function:: void fmpz_poly_chebyshev_t(fmpz_poly_t poly, ulong n)
+              void fmpz_poly_chebyshev_t(fmpz_poly_t poly, ulong n)
 
     Sets ``poly`` to the Chebyshev polynomial of the first kind `T_n(x)`,
     defined by `T_n(x) = \cos(n \cos^{-1}(x))`, for `n\ge0`. The coefficients are
     calculated using a hypergeometric recurrence.
 
 .. function:: void _fmpz_poly_chebyshev_u(fmpz * coeffs, ulong n)
-
-.. function:: void fmpz_poly_chebyshev_u(fmpz_poly_t poly, ulong n)
+              void fmpz_poly_chebyshev_u(fmpz_poly_t poly, ulong n)
 
     Sets ``poly`` to the Chebyshev polynomial of the first kind `U_n(x)`,
     defined by `(n+1) U_n(x) = T'_{n+1}(x)`, for `n\ge0`.
@@ -3222,7 +3282,7 @@ Orthogonal polynomials
 .. function:: void _fmpz_poly_legendre_pt(fmpz * coeffs, ulong n)
 
     Sets ``coeffs`` to the coefficient array of the shifted Legendre
-    polynomial `\tilde{P_n}(x)`, defined by `\tilde{P_n(x)} = P_n(2x-1)`, for `n\ge0`.
+    polynomial `\tilde{P_n}(x)`, defined by `\tilde{P_n}(x) = P_n(2x-1)`, for `n\ge0`.
     The coefficients are calculated using a hypergeometric recurrence.
     The length of the array will be ``n+1``.
     See ``fmpq_poly`` for the Legendre polynomials.
@@ -3230,7 +3290,7 @@ Orthogonal polynomials
 .. function:: void fmpz_poly_legendre_pt(fmpz_poly_t poly, ulong n)
 
     Sets ``poly`` to the shifted Legendre polynomial `\tilde{P_n}(x)`,
-    defined by `\tilde{P_n(x)} = P_n(2x-1)`, for `n\ge0`. The coefficients are
+    defined by `\tilde{P_n}(x) = P_n(2x-1)`, for `n\ge0`. The coefficients are
     calculated using a hypergeometric recurrence. See ``fmpq_poly``
     for the Legendre polynomials.
 
@@ -3282,8 +3342,7 @@ Modular forms and q-series
 
 
 .. function:: void _fmpz_poly_eta_qexp(fmpz * f, slong r, slong len)
-
-.. function:: void fmpz_poly_eta_qexp(fmpz_poly_t f, slong r, slong n)
+              void fmpz_poly_eta_qexp(fmpz_poly_t f, slong r, slong n)
 
     Sets `f` to the `q`-expansion to length `n` of the
     Dedekind eta function (without the leading factor
@@ -3300,8 +3359,7 @@ Modular forms and q-series
     and otherwise reduces to one of those cases using power series arithmetic.
 
 .. function:: void _fmpz_poly_theta_qexp(fmpz * f, slong r, slong len)
-
-.. function:: void fmpz_poly_theta_qexp(fmpz_poly_t f, slong r, slong n)
+              void fmpz_poly_theta_qexp(fmpz_poly_t f, slong r, slong n)
 
     Sets `f` to the `q`-expansion to length `n` of the
     Jacobi theta function raised to the power `r`, i.e. `\vartheta(q)^r`

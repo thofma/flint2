@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifndef FMPZ_MOD_POLY_H
@@ -30,6 +30,7 @@
 #include "fmpz.h"
 #include "fmpz_poly.h"
 #include "fmpz_mat.h"
+#include "fmpz_mod_mat.h"
 
 #ifdef __cplusplus
  extern "C" {
@@ -81,20 +82,20 @@ typedef fmpz_mod_poly_frobenius_powers_struct fmpz_mod_poly_frobenius_powers_t[1
 
 typedef struct
 {
-    fmpz_mat_struct A;
-    fmpz_mod_poly_struct poly1;
-    fmpz_mod_poly_struct poly2;
-    fmpz_mod_poly_struct poly2inv;
+    fmpz_mat_struct * A;
+    fmpz_mod_poly_struct * poly1;
+    fmpz_mod_poly_struct * poly2;
+    fmpz_mod_poly_struct * poly2inv;
 }
 fmpz_mod_poly_matrix_precompute_arg_t;
 
 typedef struct
 {
-    fmpz_mat_struct A;
-    fmpz_mod_poly_struct res;
-    fmpz_mod_poly_struct poly1;
-    fmpz_mod_poly_struct poly3;
-    fmpz_mod_poly_struct poly3inv;
+    fmpz_mat_struct * A;
+    fmpz_mod_poly_struct * res;
+    fmpz_mod_poly_struct * poly1;
+    fmpz_mod_poly_struct * poly3;
+    fmpz_mod_poly_struct * poly3inv;
 }
 fmpz_mod_poly_compose_mod_precomp_preinv_arg_t;
 
@@ -209,10 +210,13 @@ int fmpz_mod_poly_is_one(const fmpz_mod_poly_t poly)
 }
 
 FMPZ_MOD_POLY_INLINE
-int fmpz_mod_poly_is_x(const fmpz_mod_poly_t op)
+int fmpz_mod_poly_is_gen(const fmpz_mod_poly_t op)
 {
     return (op->length) == 2 && (*(op->coeffs + 1) == WORD(1)) && (*(op->coeffs + 0) == WORD(0));
 }
+
+/* Deprecated */
+#define fmpz_mod_poly_is_x fmpz_mod_poly_is_gen
 
 /*  Assignment and basic manipulation ****************************************/
 
@@ -228,6 +232,20 @@ FMPZ_MOD_POLY_INLINE
 void fmpz_mod_poly_zero(fmpz_mod_poly_t poly)
 {
    _fmpz_mod_poly_set_length(poly, 0);
+}
+
+FMPZ_MOD_POLY_INLINE
+void fmpz_mod_poly_one(fmpz_mod_poly_t poly)
+{
+   if (fmpz_is_one(&poly->p))
+   {
+      _fmpz_mod_poly_set_length(poly, 0);
+   } else
+   {
+      fmpz_mod_poly_fit_length(poly, 1);
+      _fmpz_mod_poly_set_length(poly, 1);
+      fmpz_set_ui(poly->coeffs + 0, 1);
+   }
 }
 
 FLINT_DLL void fmpz_mod_poly_zero_coeffs(fmpz_mod_poly_t poly, slong i, slong j);
@@ -472,6 +490,21 @@ FLINT_DLL void _fmpz_mod_poly_powmod_x_fmpz_preinv(fmpz * res, const fmpz_t e, c
 FLINT_DLL void fmpz_mod_poly_powmod_x_fmpz_preinv(fmpz_mod_poly_t res, const fmpz_t e,
                           const fmpz_mod_poly_t f, const fmpz_mod_poly_t finv);
 
+FLINT_DLL void _fmpz_mod_poly_powers_mod_preinv_naive(fmpz ** res,
+                    const fmpz * f, slong flen, slong n, const fmpz * g,
+                 slong glen, const fmpz * ginv, slong ginvlen, const fmpz_t p);
+ 
+FLINT_DLL void fmpz_mod_poly_powers_mod_naive(fmpz_mod_poly_struct * res,
+                    const fmpz_mod_poly_t f, slong n, const fmpz_mod_poly_t g);
+
+FLINT_DLL void _fmpz_mod_poly_powers_mod_preinv_threaded_pool(fmpz ** res,
+       const fmpz * f, slong flen, slong n, const fmpz * g, slong glen,
+                          const fmpz * ginv, slong ginvlen, const fmpz_t p,
+	                      thread_pool_handle * threads, slong num_threads);
+
+FLINT_DLL void fmpz_mod_poly_powers_mod_bsgs(fmpz_mod_poly_struct * res,
+                    const fmpz_mod_poly_t f, slong n, const fmpz_mod_poly_t g);
+
 FLINT_DLL void fmpz_mod_poly_frobenius_powers_2exp_precomp(fmpz_mod_poly_frobenius_powers_2exp_t pow, 
                  const fmpz_mod_poly_t f, const fmpz_mod_poly_t finv, ulong m);
 
@@ -585,8 +618,8 @@ void _fmpz_mod_poly_rem(fmpz *R,
     _fmpz_vec_clear(Q, lenA - lenB + 1);
 }
 
-FMPZ_MOD_POLY_INLINE 
-void fmpz_mod_poly_rem(fmpz_mod_poly_t R, 
+FMPZ_MOD_POLY_INLINE
+void fmpz_mod_poly_rem(fmpz_mod_poly_t R,
                        const fmpz_mod_poly_t A, const fmpz_mod_poly_t B)
 {
     fmpz_mod_poly_t Q;
@@ -596,8 +629,8 @@ void fmpz_mod_poly_rem(fmpz_mod_poly_t R,
     fmpz_mod_poly_clear(Q);
 }
 
-FMPZ_MOD_POLY_INLINE 
-void fmpz_mod_poly_rem_f(fmpz_t f, fmpz_mod_poly_t R, 
+FMPZ_MOD_POLY_INLINE
+void fmpz_mod_poly_rem_f(fmpz_t f, fmpz_mod_poly_t R,
                        const fmpz_mod_poly_t A, const fmpz_mod_poly_t B)
 {
     fmpz_mod_poly_t Q;
@@ -1023,7 +1056,7 @@ FLINT_DLL void _fmpz_mod_poly_precompute_matrix (fmpz_mat_t A, const fmpz * poly
                           const fmpz * poly2, slong len2, const fmpz * poly2inv,
                           slong len2inv, const fmpz_t p);
 
-FLINT_DLL void * _fmpz_mod_poly_precompute_matrix_worker(void * arg_ptr);
+FLINT_DLL void _fmpz_mod_poly_precompute_matrix_worker(void * arg_ptr);
 
 FLINT_DLL void fmpz_mod_poly_precompute_matrix(fmpz_mat_t A, const fmpz_mod_poly_t poly1,
                    const fmpz_mod_poly_t poly2, const fmpz_mod_poly_t poly2inv);
@@ -1032,7 +1065,7 @@ FLINT_DLL void _fmpz_mod_poly_compose_mod_brent_kung_precomp_preinv(fmpz * res,
          const fmpz * poly1, slong len1, const fmpz_mat_t A, const fmpz * poly3,
          slong len3, const fmpz * poly3inv, slong len3inv, const fmpz_t p);
 
-FLINT_DLL void * _fmpz_mod_poly_compose_mod_brent_kung_precomp_preinv_worker(void * arg_ptr);
+FLINT_DLL void _fmpz_mod_poly_compose_mod_brent_kung_precomp_preinv_worker(void * arg_ptr);
 
 FLINT_DLL void fmpz_mod_poly_compose_mod_brent_kung_precomp_preinv(fmpz_mod_poly_t res,
                    const fmpz_mod_poly_t poly1, const fmpz_mat_t A,
@@ -1054,27 +1087,33 @@ FLINT_DLL void fmpz_mod_poly_compose_mod_horner(fmpz_mod_poly_t res, const fmpz_
 
 FLINT_DLL void _fmpz_mod_poly_compose_mod_brent_kung_vec_preinv(fmpz_mod_poly_struct * res,
                  const fmpz_mod_poly_struct * polys, slong len1, slong l,
-                 const fmpz * poly, slong len, const fmpz * polyinv,
-                 slong leninv, const fmpz_t p);
+                 const fmpz * g, slong glen, const fmpz * poly, slong len,
+		 const fmpz * polyinv, slong leninv, const fmpz_t p);
 
 FLINT_DLL void fmpz_mod_poly_compose_mod_brent_kung_vec_preinv(fmpz_mod_poly_struct * res,
+                    const fmpz_mod_poly_struct * polys, slong len1,
+                    slong n, const fmpz_mod_poly_t g,
+		    const fmpz_mod_poly_t poly,
+		    const fmpz_mod_poly_t polyinv);
+
+FLINT_DLL void _fmpz_mod_poly_compose_mod_brent_kung_vec_preinv_threaded_pool(fmpz_mod_poly_struct * res,
+             const fmpz_mod_poly_struct * polys, slong lenpolys, slong l,
+             const fmpz * g, slong glen, const fmpz * poly, slong len,
+             const fmpz * polyinv, slong leninv, const fmpz_t p,
+                              thread_pool_handle * threads, slong num_threads);
+
+FLINT_DLL void fmpz_mod_poly_compose_mod_brent_kung_vec_preinv_threaded_pool(fmpz_mod_poly_struct * res,
+            const fmpz_mod_poly_struct * polys, slong len1, slong n,
+            const fmpz_mod_poly_t g, const fmpz_mod_poly_t poly,
+            const fmpz_mod_poly_t polyinv, thread_pool_handle * threads,
+                                                            slong num_threads);
+
+FLINT_DLL void
+fmpz_mod_poly_compose_mod_brent_kung_vec_preinv_threaded(fmpz_mod_poly_struct * res,
                     const fmpz_mod_poly_struct * polys, slong len1, slong n,
-                    const fmpz_mod_poly_t poly, const fmpz_mod_poly_t polyinv);
-
-FLINT_DLL void _fmpz_mod_poly_compose_mod_brent_kung_vec_preinv_threaded(fmpz_mod_poly_struct * res,
-                                                 const fmpz_mod_poly_struct *
-                                                 polys, slong lenpolys,
-                                                 slong l, const fmpz * poly,
-                                                 slong len,
-                                                 const fmpz * polyinv,
-                                                 slong leninv, const fmpz_t p);
-
-FLINT_DLL void fmpz_mod_poly_compose_mod_brent_kung_vec_preinv_threaded(fmpz_mod_poly_struct * res,
-                                                const fmpz_mod_poly_struct *
-                                                polys, slong len1, slong n,
-                                                const fmpz_mod_poly_t poly,
+                    const fmpz_mod_poly_t g, const fmpz_mod_poly_t poly,
                                                 const fmpz_mod_poly_t polyinv);
-
+ 
 /*  Radix conversion *********************************************************/
 
 typedef struct {
@@ -1148,6 +1187,11 @@ FLINT_DLL void fmpz_mod_poly_product_roots_fmpz_vec(fmpz_poly_t poly, const fmpz
 
 FLINT_DLL int fmpz_mod_poly_find_distinct_nonzero_roots(fmpz * roots,
                                                       const fmpz_mod_poly_t P);
+
+FLINT_DLL void _fmpz_mod_poly_split_rabin(fmpz_mod_poly_t a, fmpz_mod_poly_t b,
+                                   const fmpz_mod_poly_t f, const fmpz_t halfp,
+                fmpz_mod_poly_t t, fmpz_mod_poly_t t2, flint_rand_t randstate);
+
 
 /* Berlekamp-Massey Algorithm - see fmpz_mod_poly/berlekamp_massey.c for more info ********/
 typedef struct {
@@ -1223,6 +1267,15 @@ FMPZ_MOD_POLY_INLINE const fmpz_mod_poly_struct * fmpz_mod_berlekamp_massey_R_po
 {
     return B->R1;
 }
+
+/* Inlines *******************************************************************/
+
+FLINT_DLL void fmpz_mod_poly_add_si(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly, slong c);
+FLINT_DLL void fmpz_mod_poly_sub_si(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly, slong c);
+FLINT_DLL void fmpz_mod_poly_si_sub(fmpz_mod_poly_t res, slong c, const fmpz_mod_poly_t poly);
+FLINT_DLL void fmpz_mod_poly_add_fmpz(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly, fmpz_t c);
+FLINT_DLL void fmpz_mod_poly_sub_fmpz(fmpz_mod_poly_t res, const fmpz_mod_poly_t poly, fmpz_t c);
+FLINT_DLL void fmpz_mod_poly_fmpz_sub(fmpz_mod_poly_t res, fmpz_t c, const fmpz_mod_poly_t poly);
 
 #ifdef __cplusplus
 }

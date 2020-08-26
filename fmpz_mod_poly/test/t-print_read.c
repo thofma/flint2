@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <sys/types.h>
@@ -56,7 +56,7 @@ int main(void)
         a = flint_malloc(n * sizeof(fmpz_mod_poly_t));
         for (i = 0; i < n; i++)
         {
-            fmpz_mod_poly_init(a[i],two);
+            fmpz_mod_poly_init(a[i], two);
             fmpz_mod_poly_randtest(a[i], state, n_randint(state, 100));
         }
 
@@ -101,6 +101,9 @@ int main(void)
                 }
             }
 
+            for (j = 0; j < n; j++)
+                fmpz_mod_poly_clear(a[j]);
+            flint_free(a);
             fclose(out);
             exit(0);
         }
@@ -218,7 +221,7 @@ int main(void)
             i = 0;
             /* Only four junk bytes are sent and our read
                doesn't consume invalid bytes, so eof is never reached */
-            for(i=0; i<500; i++)
+            for(i = 0; i < 500; i++)
             {
                 r = fmpz_mod_poly_fread(in, t);
                 if (r > 0)

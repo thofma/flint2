@@ -8,7 +8,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -97,6 +97,12 @@ nmod_poly_powmod_mpz_binexp(nmod_poly_t res,
         flint_abort();
     }
 
+    if (lenf == 1)
+    {
+        nmod_poly_zero(res);
+        return;
+    }
+
     if (mpz_sgn(e) < 0)
     {
         flint_printf("Exception (nmod_poly_powmod). Negative exp not implemented.\n");
@@ -137,7 +143,7 @@ nmod_poly_powmod_mpz_binexp(nmod_poly_t res,
         }
     }
 
-    if (lenf == 1 || len == 0)
+    if (len == 0)
     {
         nmod_poly_zero(res);
         return;

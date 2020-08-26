@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "fmpq.h"
@@ -48,6 +48,12 @@ void _fmpq_pow_si(fmpz_t rnum, fmpz_t rden,
 
 void fmpq_pow_si(fmpq_t rop, const fmpq_t op, slong e)
 {
+    if (e < 0 && fmpz_is_zero(fmpq_numref(op)))
+    {
+        flint_printf("Exception (fmpq_pow_si). Division by zero.\n");
+        flint_abort();	
+    }
+    
     _fmpq_pow_si(fmpq_numref(rop), fmpq_denref(rop), 
                  fmpq_numref(op), fmpq_denref(op), e);
 }

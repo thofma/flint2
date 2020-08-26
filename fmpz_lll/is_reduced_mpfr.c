@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "fmpz_lll.h"
@@ -23,7 +23,7 @@ fmpz_lll_is_reduced_mpfr(const fmpz_mat_t B, const fmpz_lll_t fl,
         slong i, j, k, m, n;
         mpfr_mat_t A, Q, R, V, Wu, Wd, bound, bound2, bound3, boundt, mm, rm,
             mn, rn, absR;
-        mpfr *du, *dd;
+        flint_mpfr *du, *dd;
         mpfr_t s, norm, ti, tj, tmp;
 
         if (B->r == 0 || B->r == 1)
@@ -508,7 +508,7 @@ fmpz_lll_is_reduced_mpfr(const fmpz_mat_t B, const fmpz_lll_t fl,
         slong i, j, k, m, n;
         mpfr_mat_t A, R, V, Wu, Wd, bound, bound2, bound3, boundt, mm, rm,
             mn, rn, absR;
-        mpfr *du, *dd;
+        flint_mpfr *du, *dd;
         mpfr_t s, norm, ti, tj, tmp;
 
         if (B->r == 0 || B->r == 1)

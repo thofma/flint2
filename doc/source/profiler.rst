@@ -8,7 +8,8 @@ Timer based on the cycle counter
 --------------------------------------------------------------------------------
 
 
-.. function:: void timeit_start(timeit_t t) void timeit_stop(timeit_t t)
+.. function:: void timeit_start(timeit_t t)
+              void timeit_stop(timeit_t t)
 
     Gives wall and user time - useful for parallel programming.
 
@@ -26,7 +27,11 @@ Timer based on the cycle counter
         
         flint_printf("cpu = %wd ms  wall = %wd ms\n", t0->cpu, t0->wall);
 
-.. function:: void start_clock(int n) void stop_clock(int n) double get_clock(int n)
+.. function:: void start_clock(int n)
+
+.. function:: void stop_clock(int n)
+
+.. function:: double get_clock(int n)
 
     Gives time based on cycle counter.
 
@@ -34,7 +39,7 @@ Timer based on the cycle counter
     is set correctly in ``profiler.h``, in the macro definition 
     ``#define FLINT_CLOCKSPEED``.
 
-    One can access the cycle counter directly by ``get_cycle_counter()``
+    One can access the cycle counter directly by :func:`get_cycle_counter`
     which returns the current cycle counter as a ``double``.
 
     A sample usage of clocks is::
@@ -107,7 +112,7 @@ Framework for repeatedly sampling a single target
     ``NULL``, that value is not stored.
 
     One may set the minimum time in microseconds for a timing run by 
-    adjusting\\ ``DURATION_THRESHOLD`` and one may set a target duration 
+    adjusting ``DURATION_THRESHOLD`` and one may set a target duration 
     in microseconds by adjusting ``DURATION_TARGET`` in ``profiler.h``.
 
 
@@ -128,7 +133,9 @@ Simple profiling macros
 --------------------------------------------------------------------------------
 
 
-.. function:: macro TIMEIT_REPEAT(timer, reps) macro TIMEIT_END_REPEAT(timer, reps)
+.. macro:: TIMEIT_REPEAT(timer, reps)
+
+.. macro:: TIMEIT_END_REPEAT(timer, reps)
 
     Repeatedly runs the code between the ``TIMEIT_REPEAT`` and the
     ``TIMEIT_END_REPEAT`` markers, automatically increasing the number of
@@ -136,7 +143,9 @@ Simple profiling macros
     The macro takes as input a predefined ``timeit_t`` object
     and an integer variable to hold the number of repetitions.
 
-.. function:: macro TIMEIT_START macro TIMEIT_STOP
+.. macro:: TIMEIT_START
+
+.. macro:: TIMEIT_STOP
 
     Repeatedly runs the code between the ``TIMEIT_START`` and the
     ``TIMEIT_STOP``
@@ -144,7 +153,9 @@ Simple profiling macros
     elapsed time exceeds the timer resolution, and then prints the average
     elapsed cpu and wall time for a single repetition.
 
-.. function:: macro TIMEIT_ONCE_START macro TIMEIT_ONCE_STOP
+.. macro:: TIMEIT_ONCE_START
+
+.. macro:: TIMEIT_ONCE_STOP
 
     Runs the code between the ``TIMEIT_ONCE_START`` and the
     ``TIMEIT_ONCE_STOP``
@@ -152,7 +163,7 @@ Simple profiling macros
     This does not give a precise measurement if the elapsed time is short
     compared to the timer resolution.
 
-.. function:: macro SHOW_MEMORY_USAGE
+.. macro:: SHOW_MEMORY_USAGE
 
     Retrieves memory usage information via ``get_memory_usage``
     and prints the results.

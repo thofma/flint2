@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "nmod_mpoly.h"
@@ -167,6 +167,118 @@ void fmpz_mpolyu_one(fmpz_mpolyu_t A, const fmpz_mpoly_ctx_t uctx)
 }
 
 
+int fmpz_equal_upto_unit(
+    const fmpz_t a,
+    const fmpz_t b)
+{
+    if (fmpz_equal(a, b))
+        return 1;
+
+    if (fmpz_cmpabs(a, b) == 0)
+        return -1;
+
+    return 0;
+}
+
+int fmpz_mpoly_equal_upto_unit(
+    const fmpz_mpoly_t A,
+    const fmpz_mpoly_t B,
+    const fmpz_mpoly_ctx_t ctx)
+{
+    int res;
+    slong i, n = A->length;
+
+    if (A->length != B->length)
+        return 0;
+
+    if (A->length < 1)
+        return 1;
+
+    if (mpoly_monomials_cmp(A->exps, A->bits, B->exps, B->bits, n, ctx->minfo) != 0)
+        return 0;
+
+    i = 0;
+
+    res = fmpz_equal_upto_unit(A->coeffs + i, B->coeffs + i);
+    if (res == 0)
+        return 0;
+
+    for (i++; i < n; i++)
+    {
+        int res2 = fmpz_equal_upto_unit(A->coeffs + i, B->coeffs + i);
+        if (res2 == 0 || res != res2)
+            return 0;
+    }
+
+    return res;
+}
+
+
+int fmpz_mpolyu_equal_upto_unit(const fmpz_mpolyu_t A, const fmpz_mpolyu_t B,
+                                                   const fmpz_mpoly_ctx_t ctx)
+{
+    int res;
+    slong i;
+
+    if (A->length != B->length)
+        return 0;
+
+    if (A->length < 1)
+        return 1;
+
+    for (i = 0; i < A->length; i++)
+    {
+        if (A->exps[i] != B->exps[i])
+            return 0;
+    }
+
+    i = 0;
+
+    res = fmpz_mpoly_equal_upto_unit(A->coeffs + i, B->coeffs + i, ctx);
+    if (res == 0)
+        return 0;
+
+    for (i++; i < A->length; i++)
+    {
+        int res2 = fmpz_mpoly_equal_upto_unit(A->coeffs + i, B->coeffs + i, ctx);
+        if (res2 == 0 || res != res2)
+            return 0;
+    }
+
+    return res;
+}
+
+void fmpz_mpolyu_inner_degrees_si(
+    slong * degs,
+    const fmpz_mpolyu_t A,
+    const fmpz_mpoly_ctx_t ctx)
+{
+    slong i, j, * t;
+    TMP_INIT;
+
+    if (A->length < 1)
+    {
+        for (j = 0; j < ctx->minfo->nvars; j++)
+            degs[j] = -1;
+        return;
+    }
+
+    TMP_START;
+
+    t = TMP_ALLOC(ctx->minfo->nvars*sizeof(slong));
+    
+    fmpz_mpoly_degrees_si(degs, A->coeffs + 0, ctx);
+
+    for (i = 0; i < A->length; i++)
+    {
+        fmpz_mpoly_degrees_si(t, A->coeffs + i, ctx);
+        for (j = 0; j < ctx->minfo->nvars; j++)
+            degs[j] = FLINT_MAX(degs[j], t[j]);
+    }
+
+    TMP_END;
+}
+
 void fmpz_mpolyu_set(fmpz_mpolyu_t A, const fmpz_mpolyu_t B,
                                                    const fmpz_mpoly_ctx_t uctx)
 {
@@ -272,10 +384,6 @@ create_new: /* new at position i */
 }
 
 
-
-
-
-
 /*
     Convert B to A using the variable permutation perm.
     The uctx (m vars) should be the context of A.
@@ -287,7 +395,7 @@ create_new: /* new at position i */
         l = perm[k]
         Aexp[k] = (Bexp[l] - shift[l])/stride[l]
 */
-void fmpz_mpoly_to_mpoly_perm_deflate(
+void fmpz_mpoly_to_mpoly_perm_deflate_threaded_pool(
     fmpz_mpoly_t A,
     const fmpz_mpoly_ctx_t uctx,
     const fmpz_mpoly_t B,
@@ -354,7 +462,9 @@ void fmpz_mpoly_to_mpoly_perm_deflate(
 typedef struct
 {
     volatile slong index;
+#if HAVE_PTHREAD
     pthread_mutex_t mutex;
+#endif
     slong length;
     fmpz_mpoly_struct * coeffs;
     const fmpz_mpoly_ctx_struct * ctx;
@@ -371,10 +481,14 @@ static void _worker_sort(void * varg)
 
 get_next_index:
 
+#if HAVE_PTHREAD
     pthread_mutex_lock(&arg->mutex);
+#endif
     i = arg->index;
     arg->index++;
+#if HAVE_PTHREAD
     pthread_mutex_unlock(&arg->mutex);
+#endif
 
     if (i >= arg->length)
         goto cleanup;
@@ -520,7 +634,7 @@ void _arrayconvertu_worker(void * varg)
     the coefficients of A use variables k = 1 ... m
     maxexps if it exists is supposed to be a degree bound on B
 */
-void fmpz_mpoly_to_mpolyu_perm_deflate(
+void fmpz_mpoly_to_mpolyu_perm_deflate_threaded_pool(
     fmpz_mpolyu_t A,
     const fmpz_mpoly_ctx_t uctx,
     const fmpz_mpoly_t B,
@@ -584,7 +698,7 @@ void fmpz_mpoly_to_mpolyu_perm_deflate(
         {
             args[i].idx = i;
             args[i].base = base;
-            thread_pool_wake(global_thread_pool, handles[i],
+            thread_pool_wake(global_thread_pool, handles[i], 0,
                                              _arrayconvertu_worker, &args[i]);
         }
         i = num_handles;
@@ -651,15 +765,17 @@ void fmpz_mpoly_to_mpolyu_perm_deflate(
         {
             _sort_arg_t arg;
 
+#if HAVE_PTHREAD
             pthread_mutex_init(&arg->mutex, NULL);
-            arg->index = 0;
+#endif
+	    arg->index = 0;
             arg->coeffs = A->coeffs;
             arg->length = A->length;
             arg->ctx = uctx;
 
             for (i = 0; i < num_handles; i++)
             {
-                thread_pool_wake(global_thread_pool, handles[i], _worker_sort, arg);
+                thread_pool_wake(global_thread_pool, handles[i], 0, _worker_sort, arg);
             }
             _worker_sort(arg);
             for (i = 0; i < num_handles; i++)
@@ -667,8 +783,10 @@ void fmpz_mpoly_to_mpolyu_perm_deflate(
                 thread_pool_wait(global_thread_pool, handles[i]);
             }
 
+#if HAVE_PTHREAD
             pthread_mutex_destroy(&arg->mutex);
-        }
+#endif
+	}
         else
         {
             for (i = 0; i < A->length; i++)
@@ -990,7 +1108,7 @@ void _arrayconvertuu_worker(void * varg)
     the coefficients of A use variables Aexp[2], ..., Aexp[m + 1]
     maxexps if it exists is supposed to be a degree bound on B
 */
-void fmpz_mpoly_to_mpolyuu_perm_deflate(
+void fmpz_mpoly_to_mpolyuu_perm_deflate_threaded_pool(
     fmpz_mpolyu_t A,
     const fmpz_mpoly_ctx_t uctx,
     const fmpz_mpoly_t B,
@@ -1058,7 +1176,7 @@ void fmpz_mpoly_to_mpolyuu_perm_deflate(
         {
             args[i].idx = i;
             args[i].base = base;
-            thread_pool_wake(global_thread_pool, handles[i],
+            thread_pool_wake(global_thread_pool, handles[i], 0,
                                              _arrayconvertuu_worker, &args[i]);
         }
         i = num_handles;
@@ -1129,7 +1247,9 @@ void fmpz_mpoly_to_mpolyuu_perm_deflate(
         {
             _sort_arg_t arg;
 
+#if HAVE_PTHREAD
             pthread_mutex_init(&arg->mutex, NULL);
+#endif
             arg->index = 0;
             arg->coeffs = A->coeffs;
             arg->length = A->length;
@@ -1137,7 +1257,7 @@ void fmpz_mpoly_to_mpolyuu_perm_deflate(
 
             for (i = 0; i < num_handles; i++)
             {
-                thread_pool_wake(global_thread_pool, handles[i], _worker_sort, arg);
+                thread_pool_wake(global_thread_pool, handles[i], 0, _worker_sort, arg);
             }
             _worker_sort(arg);
             for (i = 0; i < num_handles; i++)
@@ -1145,8 +1265,10 @@ void fmpz_mpoly_to_mpolyuu_perm_deflate(
                 thread_pool_wait(global_thread_pool, handles[i]);
             }
 
+#if HAVE_PTHREAD
             pthread_mutex_destroy(&arg->mutex);
-        }
+#endif
+	}
         else
         {
             for (i = 0; i < A->length; i++)
@@ -1371,6 +1493,61 @@ void fmpz_mpolyu_divexact_mpoly(
     TMP_END;
 }
 
+void fmpz_mpolyu_divexact_mpoly_inplace(fmpz_mpolyu_t A, fmpz_mpoly_t c,
+                                                    const fmpz_mpoly_ctx_t ctx)
+{
+    slong i, N, len;
+    flint_bitcnt_t bits;
+    ulong * cmpmask;
+    fmpz_mpoly_t t;
+    TMP_INIT;
+
+    FLINT_ASSERT(c->length > 0);
+
+    if (fmpz_mpoly_is_fmpz(c, ctx))
+    {
+        if (fmpz_is_one(c->coeffs + 0))
+            return;
+        for (i = 0; i < A->length; i++)
+            _fmpz_vec_scalar_divexact_fmpz(A->coeffs[i].coeffs, A->coeffs[i].coeffs,
+                                           A->coeffs[i].length, c->coeffs + 0);
+        return;
+    }
+
+    bits = A->bits;
+    FLINT_ASSERT(bits == c->bits);
+
+    fmpz_mpoly_init3(t, 0, bits, ctx);
+
+    N = mpoly_words_per_exp(bits, ctx->minfo);
+
+    TMP_START;
+
+    cmpmask = (ulong*) TMP_ALLOC(N*sizeof(ulong));
+    mpoly_get_cmpmask(cmpmask, N, bits, ctx->minfo);
+
+    for (i = A->length - 1; i >= 0; i--)
+    {
+        fmpz_mpoly_struct * poly1 = t;
+        fmpz_mpoly_struct * poly2 = A->coeffs + i;
+        fmpz_mpoly_struct * poly3 = c;
+
+        FLINT_ASSERT(poly2->bits == bits);
+
+        len = _fmpz_mpoly_divides_monagan_pearce(&poly1->coeffs, &poly1->exps,
+                            &poly1->alloc, poly2->coeffs, poly2->exps, poly2->length,
+                              poly3->coeffs, poly3->exps, poly3->length, bits, N,
+                                                  cmpmask);
+        FLINT_ASSERT(len > 0);
+        poly1->length = len;
+        fmpz_mpoly_swap(poly2, poly1, ctx);
+    }
+
+    TMP_END;
+
+    fmpz_mpoly_clear(t, ctx);
+}
+
 
 
 /*
@@ -1422,6 +1599,63 @@ void fmpz_mpolyu_mul_mpoly(fmpz_mpolyu_t A, fmpz_mpolyu_t B,
     TMP_END;
 }
 
+void fmpz_mpolyu_mul_mpoly_inplace(fmpz_mpolyu_t A, fmpz_mpoly_t c,
+                                                    const fmpz_mpoly_ctx_t ctx)
+{
+    slong i;
+    slong len;
+    slong N;
+    flint_bitcnt_t bits;
+    ulong * cmpmask;
+    fmpz_mpoly_t t;
+    TMP_INIT;
+
+    FLINT_ASSERT(c->length > 0);
+
+    if (fmpz_mpoly_is_fmpz(c, ctx))
+    {
+        if (fmpz_is_one(c->coeffs + 0))
+            return;
+        for (i = 0; i < A->length; i++)
+            _fmpz_vec_scalar_mul_fmpz(A->coeffs[i].coeffs, A->coeffs[i].coeffs,
+                                           A->coeffs[i].length, c->coeffs + 0);
+        return;
+    }
+
+    bits = A->bits;
+    FLINT_ASSERT(bits == c->bits);
+
+    fmpz_mpoly_init3(t, 0, bits, ctx);
+
+    N = mpoly_words_per_exp(bits, ctx->minfo);
+
+    TMP_START;
+
+    cmpmask = (ulong*) TMP_ALLOC(N*sizeof(ulong));
+    mpoly_get_cmpmask(cmpmask, N, bits, ctx->minfo);
+
+    for (i = A->length - 1; i >= 0; i--)
+    {
+        fmpz_mpoly_struct * poly1 = t;
+        fmpz_mpoly_struct * poly2 = A->coeffs + i;
+        fmpz_mpoly_struct * poly3 = c;
+
+        FLINT_ASSERT(poly2->bits == bits);
+
+        len = _fmpz_mpoly_mul_johnson(&poly1->coeffs, &poly1->exps,
+                            &poly1->alloc, poly2->coeffs, poly2->exps, poly2->length,
+                              poly3->coeffs, poly3->exps, poly3->length, bits, N,
+                                                  cmpmask);
+        FLINT_ASSERT(len > 0);
+        poly1->length = len;
+        fmpz_mpoly_swap(poly2, poly1, ctx);
+    }
+
+    TMP_END;
+
+    fmpz_mpoly_clear(t, ctx);
+}
+
 
 void fmpz_mpolyu_shift_right(fmpz_mpolyu_t A, ulong s)
 {
@@ -1466,7 +1700,7 @@ void fmpz_mpolyu_content_fmpz(
 }
 
 
-int fmpz_mpolyu_content_mpoly(
+int fmpz_mpolyu_content_mpoly_threaded_pool(
     fmpz_mpoly_t g,
     const fmpz_mpolyu_t A,
     const fmpz_mpoly_ctx_t ctx,
@@ -1507,8 +1741,8 @@ int fmpz_mpolyu_content_mpoly(
     {
         j = 1;
     }
-    success = _fmpz_mpoly_gcd(g, bits, A->coeffs + 0, A->coeffs + j, ctx,
-                                                        handles, num_handles);
+    success = _fmpz_mpoly_gcd_threaded_pool(g, bits, A->coeffs + 0,
+                                     A->coeffs + j, ctx, handles, num_handles);
     if (!success)
     {
         return 0;
@@ -1520,8 +1754,8 @@ int fmpz_mpolyu_content_mpoly(
         {
             continue;
         }
-        success = _fmpz_mpoly_gcd(g, bits, g, A->coeffs + i, ctx,
-                                                         handles, num_handles);
+        success = _fmpz_mpoly_gcd_threaded_pool(g, bits, g,
+                                     A->coeffs + i, ctx, handles, num_handles);
         FLINT_ASSERT(g->bits == bits);
         if (!success)
         {

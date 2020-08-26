@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifndef CXX_TEST_HELPERS_H
@@ -33,7 +33,7 @@
     } \
 } while (0)
 
-// Whether or not the compiler is good enough to compile all of t-mpz.cpp
+// Whether or not the compiler is good enough to compile all of t-fmpzxx.cpp
 // in reasonable time and space.
 #ifndef HAVE_FAST_COMPILER
 #ifdef __clang__
@@ -42,9 +42,9 @@
 #elif defined(__GNUC__)
 // gcc 4.7.3 is good enough, supposedly all higher ones are too
 #define HAVE_FAST_COMPILER \
-    (__GNUC__ >= 4 && \
+    (__GNUC__ > 4 || (__GNUC__ >= 4 && \
          ((__GNUC_MINOR__ == 7 && __GNUC_PATCHLEVEL__ >= 3) \
-          || (__GNUC_MINOR__ > 7)))
+          || (__GNUC_MINOR__ > 7))))
 #else
 #define HAVE_FAST_COMPILER 0
 #endif

@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -44,7 +44,7 @@ main(void)
         exp = (ulong *) flint_malloc(nvars*sizeof(ulong));
         exp2 = (ulong *) flint_malloc(nvars*sizeof(ulong));
 
-        len = n_randint(state, 10);
+        len = n_randint(state, 20);
         coeff_bits = n_randint(state, 100) + 1;
         exp_bits = n_randint(state, FLINT_BITS + 1);
 
@@ -56,7 +56,7 @@ main(void)
             /* get random term */
             fmpz_randtest(c, state, coeff_bits);
             for (k = 0; k < nvars; k++)
-                exp[k] = n_randint(state, exp_bits);
+                exp[k] = n_randtest_bits(state, n_randint(state, exp_bits) + 1);
 
             /* add it to f1 */
             fmpz_mpoly_zero(m, ctx);

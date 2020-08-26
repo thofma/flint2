@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #define ulong ulongxx /* interferes with system includes */
@@ -63,7 +63,8 @@ void n_factor(n_factor_t * factors, mp_limb_t n, int proved)
 #if FLINT64
                  (factor < FLINT_FACTOR_ONE_LINE_MAX) &&
 #endif
-                 (cofactor = n_factor_one_line(factor, FLINT_FACTOR_ONE_LINE_ITERS))) 
+                 (cofactor = n_factor_one_line(factor, FLINT_FACTOR_ONE_LINE_ITERS)))
+              || (cofactor = n_factor_pp1_wrapper(factor))	
               || (cofactor = n_factor_SQUFOF(factor, FLINT_FACTOR_SQUFOF_ITERS)))
         {
            exp_arr[factors_left] = exp_arr[factors_left - 1];

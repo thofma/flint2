@@ -27,7 +27,7 @@ Context object
 
     Free any memory used by ``ctx``.
 
-.. function:: void fmpz_mod_ctx_set_modulus(fmpz_mod_ctx_t ctx, const fmpz_t n);
+.. function:: void fmpz_mod_ctx_set_modulus(fmpz_mod_ctx_t ctx, const fmpz_t n)
 
     Reconfigure ``ctx`` for arithmetic modulo ``n``.
 
@@ -37,7 +37,7 @@ Arithmetic
 Unless specified otherwise all functions here expect their relevant arguments to be in the canonical range `[0,n)`.
 Comparison of elements against each other or against zero can be accomplished with func::fmpz_equal or func::fmpz_is_zero without a context.
 
-.. function:: int fmpz_mod_is_canonical(const fmpz_t a, const fmpz_mod_ctx_t ctx);
+.. function:: int fmpz_mod_is_canonical(const fmpz_t a, const fmpz_mod_ctx_t ctx)
 
     Return ``1`` if `a` is in the canonical range `[0,n)` and ``0`` otherwise.
 
@@ -63,7 +63,9 @@ Comparison of elements against each other or against zero can be accomplished wi
 
 .. function:: void fmpz_mod_inv(fmpz_t a, const fmpz_t b, const fmpz_mod_ctx_t ctx)
 
-    Set `a` to `b^{-1}` modulo `n`. This function throws if and only if `\gcd(b, n) \ne 1`.
+    Set `a` to `b^{-1}` modulo `n`.
+    This function expects that `b` is invertible modulo `n` and throws if this not the case.
+    Invertibility maybe tested with func:`fmpz_mod_pow_fmpz` or func:`fmpz_mod_divides`.
 
 .. function:: int fmpz_mod_divides(fmpz_t a, const fmpz_t b, const fmpz_t c, const fmpz_mod_ctx_t ctx)
 
@@ -71,9 +73,12 @@ Comparison of elements against each other or against zero can be accomplished wi
 
 .. function:: void fmpz_mod_pow_ui(fmpz_t a, const fmpz_t b, ulong e, const fmpz_mod_ctx_t ctx)
 
-.. function:: void fmpz_mod_pow_fmpz(fmpz_t a, const fmpz_t b, const fmpz_t e, const fmpz_mod_ctx_t ctx)
+    Set `a` to `b^e` modulo `n`.
 
-    Set `a` to `b^e` modulo `n` where `e \ge 0`.
+.. function:: int fmpz_mod_pow_fmpz(fmpz_t a, const fmpz_t b, const fmpz_t e, const fmpz_mod_ctx_t ctx)
+
+    Try to set `a` to `b^e` modulo `n`.
+    If `e < 0` and `b` is not invertible modulo `n`, the return is `0`. Otherwise, the return is `1`.
 
 
 Discrete Logarithms via Pohlig-Hellman
@@ -81,7 +86,7 @@ Discrete Logarithms via Pohlig-Hellman
 
 .. function:: void fmpz_mod_discrete_log_pohlig_hellman_init(fmpz_mod_discrete_log_pohlig_hellman_t L)
 
-    Initialize ``L``. Upon initilization ``L`` is not ready for computation.
+    Initialize ``L``. Upon initialization ``L`` is not ready for computation.
 
 .. function:: void fmpz_mod_discrete_log_pohlig_hellman_clear(fmpz_mod_discrete_log_pohlig_hellman_t L)
 
@@ -96,9 +101,9 @@ Discrete Logarithms via Pohlig-Hellman
 
     Return the internally stored base.
 
-.. function:: fmpz_mod_discrete_log_pohlig_hellman_run(fmpz_t x, const fmpz_mod_discrete_log_pohlig_hellman_t L, const fmpz_t y)
+.. function:: void fmpz_mod_discrete_log_pohlig_hellman_run(fmpz_t x, const fmpz_mod_discrete_log_pohlig_hellman_t L, const fmpz_t y)
 
-    Set ``x`` to the logarithm of ``y`` with repect to the internally stored base. ``y`` is expected to be reduced modulo the ``p``.
+    Set ``x`` to the logarithm of ``y`` with respect to the internally stored base. ``y`` is expected to be reduced modulo the ``p``.
     The function is undefined if the logarithm does not exist.
 
 

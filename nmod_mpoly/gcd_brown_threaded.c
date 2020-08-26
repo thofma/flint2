@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "nmod_mpoly.h"
@@ -653,7 +653,9 @@ static slong _nmod_mpolyn_crt(
 typedef struct
 {
     volatile int idx;
+#if HAVE_PTHREAD
     pthread_mutex_t mutex;
+#endif
     const nmod_mpoly_ctx_struct * ctx;
     nmod_poly_multi_crt_t CRT;
     nmod_mpolyn_struct ** gptrs, ** abarptrs, ** bbarptrs;
@@ -694,10 +696,14 @@ static void _joinworker(void * varg)
     while (1)
     {
         /* get exponent of either G, Abar, or Bbar to start working on */
+#if HAVE_PTHREAD
         pthread_mutex_lock(&base->mutex);
+#endif
         i = base->idx;
         base->idx = i + 1;
+#if HAVE_PTHREAD
         pthread_mutex_unlock(&base->mutex);
+#endif
 
         if (i >= base->chunks_length)
         {
@@ -796,7 +802,7 @@ static void _finaljoinworker(void * varg)
         handles[0], ..., handles[num_handles - 1]
     num_handles is allowed to be zero.
 */
-int nmod_mpolyn_gcd_brown_smprime_threaded(
+int nmod_mpolyn_gcd_brown_smprime_threaded_pool(
     nmod_mpolyn_t G,
     nmod_mpolyn_t Abar,
     nmod_mpolyn_t Bbar,
@@ -968,7 +974,7 @@ compute_split:
 
     for (i = 0; i + 1 < num_threads; i++)
     {
-        thread_pool_wake(global_thread_pool, handles[i],
+        thread_pool_wake(global_thread_pool, handles[i], 0,
                   var == 1 ? _splitworker_bivar : _splitworker, &splitargs[i]);
     }
     (var == 1 ? _splitworker_bivar : _splitworker)(&splitargs[num_threads - 1]);
@@ -1028,7 +1034,9 @@ compute_split:
     joinbase->Abar = Abar;
     joinbase->Bbar = Bbar;
     joinbase->ctx = ctx;
+#if HAVE_PTHREAD
     pthread_mutex_init(&joinbase->mutex, NULL);
+#endif
 
     joinargs = (_njoinworker_arg_struct *) flint_malloc(
                                    num_threads*sizeof(_njoinworker_arg_struct));
@@ -1089,7 +1097,7 @@ compute_split:
     for (i = 0; i + 1 < num_threads; i++)
     {
         thread_pool_wake(global_thread_pool,
-                                    handles[i], _joinworker, joinargs + i);
+                                 handles[i], 0, _joinworker, joinargs + i);
     }
     _joinworker(joinargs + num_threads - 1);
     for (i = 0; i + 1 < num_threads; i++)
@@ -1127,7 +1135,7 @@ compute_split:
     for (i = 0; i + 1 < num_threads; i++)
     {
         thread_pool_wake(global_thread_pool,
-                                   handles[i], _finaljoinworker, joinargs + i);
+                                handles[i], 0, _finaljoinworker, joinargs + i);
     }
     _finaljoinworker(joinargs + num_threads - 1);
     for (i = 0; i + 1 < num_threads; i++)
@@ -1139,7 +1147,9 @@ compute_split:
     FLINT_ASSERT(nmod_mpolyn_is_canonical(Abar, ctx));
     FLINT_ASSERT(nmod_mpolyn_is_canonical(Bbar, ctx));
 
+#if HAVE_PTHREAD
     pthread_mutex_destroy(&joinbase->mutex);
+#endif
 
     /* free join data */
     nmod_poly_multi_crt_clear(joinbase->CRT);
@@ -1155,8 +1165,10 @@ compute_split:
     {
         nmod_mpolyn_content_last(t1, G, ctx);
         nmod_mpolyn_divexact_last(G, t1, ctx);
-        success =            nmod_mpolyn_divides_threaded(T1, A, G, ctx, handles, num_handles);
-        success = success && nmod_mpolyn_divides_threaded(T2, B, G, ctx, handles, num_handles);
+        success =            nmod_mpolyn_divides_threaded_pool(T1, A, G,
+                                                    ctx, handles, num_handles);
+        success = success && nmod_mpolyn_divides_threaded_pool(T2, B, G,
+                                                    ctx, handles, num_handles);
         if (success)
         {
             ulong temp;
@@ -1175,8 +1187,10 @@ successful_fix_lc:
     {
         nmod_mpolyn_content_last(t1, Abar, ctx);
         nmod_mpolyn_divexact_last(Abar, t1, ctx);
-        success =            nmod_mpolyn_divides_threaded(T1, A, Abar, ctx, handles, num_handles);
-        success = success && nmod_mpolyn_divides_threaded(T2, B, T1, ctx, handles, num_handles);
+        success =            nmod_mpolyn_divides_threaded_pool(T1, A, Abar,
+                                                    ctx, handles, num_handles);
+        success = success && nmod_mpolyn_divides_threaded_pool(T2, B, T1,
+                                                    ctx, handles, num_handles);
         if (success)
         {
             nmod_mpolyn_swap(T1, G);
@@ -1188,8 +1202,10 @@ successful_fix_lc:
     {
         nmod_mpolyn_content_last(t1, Bbar, ctx);
         nmod_mpolyn_divexact_last(Bbar, t1, ctx);
-        success =            nmod_mpolyn_divides_threaded(T1, B, Bbar, ctx, handles, num_handles);
-        success = success && nmod_mpolyn_divides_threaded(T2, A, T1, ctx, handles, num_handles);
+        success =            nmod_mpolyn_divides_threaded_pool(T1, B, Bbar,
+                                                    ctx, handles, num_handles);
+        success = success && nmod_mpolyn_divides_threaded_pool(T2, A, T1,
+                                                    ctx, handles, num_handles);
         if (success)
         {
             nmod_mpolyn_swap(T1, G);
@@ -1296,7 +1312,7 @@ static void _worker_convertn(void * varg)
 {
     _convertn_arg_struct * arg = (_convertn_arg_struct *) varg;
 
-    nmod_mpoly_to_mpolyn_perm_deflate(arg->Pn, arg->nctx,
+    nmod_mpoly_to_mpolyn_perm_deflate_threaded_pool(arg->Pn, arg->nctx,
                     arg->P, arg->ctx, arg->perm, arg->shift, arg->stride,
                                                arg->handles, arg->num_handles);
 }
@@ -1305,8 +1321,7 @@ int nmod_mpoly_gcd_brown_threaded(
     nmod_mpoly_t G,
     const nmod_mpoly_t A,
     const nmod_mpoly_t B,
-    const nmod_mpoly_ctx_t ctx,
-    slong thread_limit)
+    const nmod_mpoly_ctx_t ctx)
 {
     int success;
     slong * perm;
@@ -1317,6 +1332,7 @@ int nmod_mpoly_gcd_brown_threaded(
     nmod_mpolyn_t An, Bn, Gn, Abarn, Bbarn;
     thread_pool_handle * handles;
     slong num_handles;
+    slong thread_limit = FLINT_MIN(A->length, B->length)/16;
 
     if (nmod_mpoly_is_zero(A, ctx))
     {
@@ -1384,20 +1400,7 @@ int nmod_mpoly_gcd_brown_threaded(
     nmod_mpolyn_init(Abarn, ABbits, nctx);
     nmod_mpolyn_init(Bbarn, ABbits, nctx);
 
-    handles = NULL;
-    num_handles = 0;
-    if (global_thread_pool_initialized)
-    {
-        slong max_num_handles = thread_pool_get_size(global_thread_pool);
-        max_num_handles = FLINT_MIN(thread_limit - 1, max_num_handles);
-        if (max_num_handles > 0)
-        {
-            handles = (thread_pool_handle *) flint_malloc(
-                               max_num_handles*sizeof(thread_pool_handle));
-            num_handles = thread_pool_request(global_thread_pool,
-                                                 handles, max_num_handles);
-        }
-    }
+    num_handles = flint_request_threads(&handles, thread_limit);
 
     /* convert inputs */
     if (num_handles > 0)
@@ -1418,39 +1421,33 @@ int nmod_mpoly_gcd_brown_threaded(
         arg->handles = handles + (m + 1);
         arg->num_handles = num_handles - (m + 1);
 
-        thread_pool_wake(global_thread_pool, handles[m], _worker_convertn, arg);
+        thread_pool_wake(global_thread_pool, handles[m], 0, _worker_convertn, arg);
 
-        nmod_mpoly_to_mpolyn_perm_deflate(An, nctx, A, ctx,
+        nmod_mpoly_to_mpolyn_perm_deflate_threaded_pool(An, nctx, A, ctx,
                                           perm, shift, stride, handles + 0, m);
 
         thread_pool_wait(global_thread_pool, handles[m]);
     }
     else
     {
-        nmod_mpoly_to_mpolyn_perm_deflate(An, nctx,
+        nmod_mpoly_to_mpolyn_perm_deflate_threaded_pool(An, nctx,
                                          A, ctx, perm, shift, stride, NULL, 0);
-        nmod_mpoly_to_mpolyn_perm_deflate(Bn, nctx,
+        nmod_mpoly_to_mpolyn_perm_deflate_threaded_pool(Bn, nctx,
                                          B, ctx, perm, shift, stride, NULL, 0);
     }
 
     /* calculate gcd */
-    success = nmod_mpolyn_gcd_brown_smprime_threaded(
+    success = nmod_mpolyn_gcd_brown_smprime_threaded_pool(
                           Gn, Abarn, Bbarn, An, Bn, nctx->minfo->nvars - 1,
                                              nctx, NULL, handles, num_handles);
 
-    for (i = 0; i < num_handles; i++)
-    {
-        thread_pool_give_back(global_thread_pool, handles[i]);
-    }
-
-    if (handles)
-        flint_free(handles);
+    flint_give_back_threads(handles, num_handles);
 
     if (!success)
     {
-        nmod_mpoly_to_mpolyn_perm_deflate(An, nctx,
+        nmod_mpoly_to_mpolyn_perm_deflate_threaded_pool(An, nctx,
                                          A, ctx, perm, shift, stride, NULL, 0);
-        nmod_mpoly_to_mpolyn_perm_deflate(Bn, nctx,
+        nmod_mpoly_to_mpolyn_perm_deflate_threaded_pool(Bn, nctx,
                                          B, ctx, perm, shift, stride, NULL, 0);
         success = nmod_mpolyn_gcd_brown_lgprime(Gn, Abarn, Bbarn,
                                          An, Bn, nctx->minfo->nvars - 1, nctx);

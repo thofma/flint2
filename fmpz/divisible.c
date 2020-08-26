@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -24,6 +24,11 @@ int fmpz_divisible(const fmpz_t x, const fmpz_t p)
         return 1;
     }
 
+    if (q == WORD(0))
+    {
+        return 0;
+    }
+
     if (!COEFF_IS_MPZ(y))
     {
         if (!COEFF_IS_MPZ(q))
@@ -39,7 +44,7 @@ int fmpz_divisible(const fmpz_t x, const fmpz_t p)
     {
         if (!COEFF_IS_MPZ(q))
         {
-            return flint_mpz_divisible_ui_p(COEFF_TO_PTR(y), q);
+            return flint_mpz_divisible_ui_p(COEFF_TO_PTR(y), FLINT_ABS(q));
         }
         else
         {

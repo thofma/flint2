@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "mpoly.h"
@@ -70,7 +70,7 @@ void mpoly_degrees_si_threaded(
     slong len,
     flint_bitcnt_t bits,
     const mpoly_ctx_t mctx,
-    thread_pool_handle * handles,
+    const thread_pool_handle * handles,
     slong num_handles)
 {
     slong i, j;
@@ -109,7 +109,7 @@ void mpoly_degrees_si_threaded(
     for (i = 0; i < num_handles; i++)
     {
         thread_pool_wake(global_thread_pool,
-                                     handles[i], _worker_degrees_si, args + i);
+                                  handles[i], 0, _worker_degrees_si, args + i);
     }
 
     i = num_handles;

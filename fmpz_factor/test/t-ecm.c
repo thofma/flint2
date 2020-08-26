@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -67,6 +67,36 @@ int main(void)
         printf("FAIL : ECM failed too many times (%d times)\n", fails);
         abort();
     }
+
+    /* Tests for hangs and crashes, don't care about result */
+
+#if FLINT64
+    fmpz_set_ui(prime1, 1123047674690129);
+    fmpz_set_ui(prime2, 66049336315331);
+    fmpz_mul(primeprod, prime1, prime2);
+    fmpz_mul(primeprod, primeprod, primeprod);
+    fmpz_factor_ecm(fac, 1, 100, 1000, state, primeprod);
+
+    /* (p*q)^2 for p and q of 53 bits */
+    for (i = 0; i < 5; i++)
+    {
+        fmpz_set_ui(prime1, n_randprime(state, 53, 1));
+	fmpz_set_ui(prime2, n_randprime(state, 53, 1));
+	fmpz_mul(primeprod, prime1, prime2);
+	fmpz_mul(primeprod, primeprod, primeprod);
+	fmpz_factor_ecm(fac, 212, 2000, 50000, state, primeprod);
+    }
+
+    /* p^2*q*r for p and q of 53 bits */
+    for (i = 0; i < 5; i++)
+    {
+        fmpz_set_ui(primeprod, n_randprime(state, 53, 1));
+        fmpz_mul(primeprod, primeprod, primeprod);
+        fmpz_mul_ui(primeprod, primeprod, n_randprime(state, 53, 1));
+        fmpz_mul_ui(primeprod, primeprod, n_randprime(state, 53, 1));
+        fmpz_factor_ecm(fac, 212, 2000, 50000, state, primeprod);
+    }
+#endif
 
     fmpz_clear(prime1);
     fmpz_clear(prime2);

@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -69,6 +69,32 @@ void gcd_check(
         flint_printf("Check gcd has positive lc\n"
                                          "i = %wd, j = %wd, %s\n", i, j, name);
         flint_abort();
+    }
+
+    if ((i + j % 11) == 0)
+    {
+        fmpz_mpoly_set(cg, b, ctx);
+        fmpz_mpoly_gcd(cg, cg, a, ctx);
+        if (!fmpz_mpoly_equal(cg, g, ctx))
+        {
+            printf("FAIL\n");
+            flint_printf("Check aliasing 1\n"
+                                         "i = %wd, j = %wd, %s\n", i, j, name);
+            flint_abort();
+        }
+    }
+
+    if ((i + j % 9) == 0)
+    {
+        fmpz_mpoly_set(cg, b, ctx);
+        fmpz_mpoly_gcd(cg, a, cg, ctx);
+        if (!fmpz_mpoly_equal(cg, g, ctx))
+        {
+            printf("FAIL\n");
+            flint_printf("Check aliasing 2\n"
+                                         "i = %wd, j = %wd, %s\n", i, j, name);
+            flint_abort();
+        }
     }
 
     res = 1;
@@ -156,6 +182,8 @@ main(void)
         fmpz_mpoly_set(t, g, ctx);
 
         gcd_check(g, a, b, t, ctx, i, 0, "dense examples");
+
+        flint_set_num_threads(n_randint(state, max_threads) + 1);
 
         fmpz_mpoly_clear(a, ctx);
         fmpz_mpoly_clear(b, ctx);

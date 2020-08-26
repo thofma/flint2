@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "fmpz_mpoly.h"
@@ -87,9 +87,9 @@ void bivar_divides_check(
         goto cleanup;
     }
 
-    fmpz_mpoly_to_mpolyuu_perm_deflate(Auu, uuctx, A, ctx,
+    fmpz_mpoly_to_mpolyuu_perm_deflate_threaded_pool(Auu, uuctx, A, ctx,
                                            perm, shift, stride, NULL, NULL, 0);
-    fmpz_mpoly_to_mpolyuu_perm_deflate(Buu, uuctx, B, ctx,
+    fmpz_mpoly_to_mpolyuu_perm_deflate_threaded_pool(Buu, uuctx, B, ctx,
                                            perm, shift, stride, NULL, NULL, 0);
 
     uudivides = fmpz_mpolyuu_divides(Quu, Auu, Buu, 2, uuctx);
@@ -195,9 +195,9 @@ void univar_divides_check(
         perm[j] = t1;
     }
 
-    fmpz_mpoly_to_mpolyu_perm_deflate(Au, uctx, A, ctx,
+    fmpz_mpoly_to_mpolyu_perm_deflate_threaded_pool(Au, uctx, A, ctx,
                                            perm, shift, stride, NULL, NULL, 0);
-    fmpz_mpoly_to_mpolyu_perm_deflate(Bu, uctx, B, ctx,
+    fmpz_mpoly_to_mpolyu_perm_deflate_threaded_pool(Bu, uctx, B, ctx,
                                            perm, shift, stride, NULL, NULL, 0);
 
     udivides = fmpz_mpolyuu_divides(Qu, Au, Bu, 1, uctx);

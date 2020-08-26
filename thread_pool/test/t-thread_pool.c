@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "thread_pool.h"
@@ -64,7 +64,7 @@ void test1(fmpz_t x, ulong n)
         args[k].modulus = modulus;
         args[k].n = n;
         fmpz_init(args[k].ans); /* worker expects an inited ans */
-        thread_pool_wake(global_thread_pool, handles[k], worker1, &args[k]);
+        thread_pool_wake(global_thread_pool, handles[k], 0, worker1, &args[k]);
     }
 
     /* do some work ourselves */
@@ -131,7 +131,7 @@ void test2_helper(fmpz_t x, ulong min, ulong max)
         args[0].min = min;
         args[0].max = mid;
         fmpz_init(args[0].ans);
-        thread_pool_wake(global_thread_pool, handles[0], worker2, &args[0]);
+        thread_pool_wake(global_thread_pool, handles[0], 0, worker2, &args[0]);
 
         /* do some work ourselves */
         test2_helper(x, mid, max);

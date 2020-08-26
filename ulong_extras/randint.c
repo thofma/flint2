@@ -7,20 +7,20 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
 #include "flint.h"
 #include "ulong_extras.h"
 
-mp_limb_t n_randint(flint_rand_t state, mp_limb_t limit) 
+ulong n_randint(flint_rand_t state, ulong limit) 
 {
     if (limit == UWORD(0)) return n_randlimb(state);
     else return n_randlimb(state) % limit;
 }
 
-mp_limb_t n_urandint(flint_rand_t state, const mp_limb_t limit) 
+mp_limb_t n_urandint(flint_rand_t state, mp_limb_t limit) 
 {
     if ((limit & (limit - 1)) == 0)
     {

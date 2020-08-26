@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <math.h>
@@ -368,7 +368,11 @@ void
 sinh_cosh_divk_precomp(mpfr_t sh, mpfr_t ch, mpfr_t ex, slong k)
 {
     mpfr_t t;
+#if MPFR_VERSION_MAJOR >= 4
+    mpfr_rootn_ui(ch, ex, k, MPFR_RNDN);
+#else
     mpfr_root(ch, ex, k, MPFR_RNDN);
+#endif
     /* The second term doesn't need full precision,
        but this doesn't affect performance that much... */
     mpfr_init2(t, mpfr_get_prec(ch));

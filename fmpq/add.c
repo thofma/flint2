@@ -1,12 +1,12 @@
 /*
-    Copyright (C) 2011 Fredrik Johansson
+    Copyright (C) 2011, 2020 Fredrik Johansson
 
     This file is part of FLINT.
 
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "fmpq.h"
@@ -16,6 +16,12 @@ _fmpq_add(fmpz_t rnum, fmpz_t rden, const fmpz_t p, const fmpz_t q,
             const fmpz_t r, const fmpz_t s)
 {
     fmpz_t g, a, b, t, u;
+
+    if (!COEFF_IS_MPZ(*p) && !COEFF_IS_MPZ(*q) && !COEFF_IS_MPZ(*r) && !COEFF_IS_MPZ(*s))
+    {
+        _fmpq_add_small(rnum, rden, *p, *q, *r, *s);
+        return;
+    }
 
     /* Same denominator */
     if (fmpz_equal(q, s))

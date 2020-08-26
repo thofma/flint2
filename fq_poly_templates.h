@@ -8,7 +8,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifdef T
@@ -54,7 +54,7 @@ FLINT_DLL void TEMPLATE(T, poly_clear)(TEMPLATE(T, poly_t) poly,
 FLINT_DLL void _TEMPLATE(T, poly_normalise)(TEMPLATE(T, poly_t) poly,
                              const TEMPLATE(T, ctx_t) ctx);
 
-FLINT_DLL void _TEMPLATE(T, poly_normalise2)(TEMPLATE(T, struct) *poly, slong *length,
+FLINT_DLL void _TEMPLATE(T, poly_normalise2)(const TEMPLATE(T, struct) *poly, slong *length,
                               const TEMPLATE(T, ctx_t) ctx);
 
 FQ_POLY_TEMPLATES_INLINE void
@@ -260,6 +260,10 @@ FLINT_DLL void _TEMPLATE(T, poly_add)(TEMPLATE(T, struct) *res,
 FLINT_DLL void TEMPLATE(T, poly_add)(TEMPLATE(T, poly_t) rop, const TEMPLATE(T, poly_t) op1,
                       const TEMPLATE(T, poly_t) op2,
                       const TEMPLATE(T, ctx_t) ctx);
+
+FLINT_DLL void TEMPLATE(T, poly_add_si)(TEMPLATE(T, poly_t) rop,
+                                    const TEMPLATE(T, poly_t) op1, slong c,
+                                                 const TEMPLATE(T, ctx_t) ctx);
 
 FLINT_DLL void TEMPLATE(T, poly_add_series)(TEMPLATE(T, poly_t) rop, const TEMPLATE(T, poly_t) op1,
                       const TEMPLATE(T, poly_t) op2,
@@ -526,6 +530,21 @@ FLINT_DLL void TEMPLATE(T, poly_pow)(TEMPLATE(T, poly_t) rop,
                       const TEMPLATE(T, poly_t) op,
                       ulong e,
                       const TEMPLATE(T, ctx_t) ctx);
+
+FLINT_DLL void _TEMPLATE(T, poly_pow_trunc_binexp) (TEMPLATE(T, struct) * res,
+                                   const TEMPLATE(T, struct) * poly,  ulong e,
+			            slong trunc, const TEMPLATE(T, ctx_t) ctx);
+
+FLINT_DLL void TEMPLATE(T, poly_pow_trunc_binexp) (TEMPLATE(T, poly_t) res,
+                                     const TEMPLATE(T, poly_t) poly, ulong e,
+                                    slong trunc, const TEMPLATE(T, ctx_t) ctx);
+
+FLINT_DLL void _TEMPLATE(T, poly_pow_trunc) (TEMPLATE(T, struct) * res,
+                                   const TEMPLATE(T, struct) * poly,  ulong e,
+                                    slong trunc, const TEMPLATE(T, ctx_t) ctx);
+
+FLINT_DLL void TEMPLATE(T, poly_pow_trunc) (TEMPLATE(T, poly_t) res,
+                                     const TEMPLATE(T, poly_t) poly, ulong e,                                                 slong trunc, const TEMPLATE(T, ctx_t) ctx);
 
 FLINT_DLL void _TEMPLATE(T, poly_powmod_fmpz_binexp)(TEMPLATE(T, struct) * res,
                                       const TEMPLATE(T, struct) * poly,

@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -190,8 +190,8 @@ _nmod_poly_mul_KS4(mp_ptr res, mp_srcptr op1, slong n1,
             and h(-B) = |f1(-B)|^2
          hn_neg is cleared since h(-B) is never negative
       */
-      mpn_mul(v3pn, v1pn, k1, v1pn, k1);
-      mpn_mul(v3mn, v1mn, k1, v1mn, k1);
+      mpn_sqr(v3pn, v1pn, k1);
+      mpn_sqr(v3mn, v1mn, k1);
       v3m_neg = 0;
    }
 
@@ -292,8 +292,8 @@ _nmod_poly_mul_KS4(mp_ptr res, mp_srcptr op1, slong n1,
              and B^(n3-1) * h(-1/B) = |B^(n1-1) * f1(-1/B)|^2
          hr_neg is cleared since h(-1/B) is never negative
       */
-      mpn_mul(v3pr, v1pr, k1, v1pr, k1);
-      mpn_mul(v3mr, v1mr, k1, v1mr, k1);
+      mpn_sqr(v3pr, v1pr, k1);
+      mpn_sqr(v3mr, v1mr, k1);
       v3m_neg = 0;
    }
 

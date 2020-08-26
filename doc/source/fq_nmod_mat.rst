@@ -33,7 +33,7 @@ Memory management
 
     Clears the matrix and releases any memory it used. The matrix
     cannot be used again until it is initialised. This function must be
-    called exactly once when finished using an ``fq_nmod_mat_t`` object.
+    called exactly once when finished using an :type:`fq_nmod_mat_t` object.
 
 .. function:: void fq_nmod_mat_set(fq_nmod_mat_t mat, fq_nmod_mat_t src, const fq_nmod_ctx_t ctx)
 
@@ -50,7 +50,7 @@ Basic properties and manipulation
     Directly accesses the entry in ``mat`` in row `i` and column `j`,
     indexed from zero. No bounds checking is performed.
 
-.. function:: fq_nmod_struct * fq_nmod_mat_entry_set(fq_nmod_mat_t mat, slong i, slong j, fq_nmod_t x, const fq_nmod_ctx_t ctx)
+.. function:: void fq_nmod_mat_entry_set(fq_nmod_mat_t mat, slong i, slong j, fq_nmod_t x, const fq_nmod_ctx_t ctx)
 
     Sets the entry in ``mat`` in row `i` and column `j` to ``x``.
 
@@ -71,23 +71,23 @@ Basic properties and manipulation
 
     Sets all entries of ``mat`` to 0.
 
-.. function:: void fq_nmod_mat_swap_rows(fq_nmod_mat_t, slong * perm, slong r, slong r)
+.. function:: void fq_nmod_mat_swap_rows(fq_nmod_mat_t mat, slong * perm, slong r, slong s)
     
     Swaps rows ``r`` and ``s`` of ``mat``.  If ``perm`` is non-``NULL``, the
     permutation of the rows will also be applied to ``perm``.
 
-.. function:: void fq_nmod_mat_swap_cols(fq_nmod_mat_t, slong * perm, slong r, slong r)
+.. function:: void fq_nmod_mat_swap_cols(fq_nmod_mat_t mat, slong * perm, slong r, slong s)
     
     Swaps columns ``r`` and ``s`` of ``mat``.  If ``perm`` is non-``NULL``, the
     permutation of the columns will also be applied to ``perm``.
 
-.. function:: void fq_nmod_mat_invert_rows(fq_nmod_mat_t, slong * perm)
+.. function:: void fq_nmod_mat_invert_rows(fq_nmod_mat_t mat, slong * perm)
     
     Swaps rows ``i`` and ``r - i`` of ``mat`` for ``0 <= i < r/2``, where
     ``r`` is the number of rows of ``mat``. If ``perm`` is non-``NULL``, the
     permutation of the rows will also be applied to ``perm``.
 
-.. function:: void fq_nmod_mat_invert_cols(fq_nmod_mat_t, slong * perm)
+.. function:: void fq_nmod_mat_invert_cols(fq_nmod_mat_t mat, slong * perm)
     
     Swaps columns ``i`` and ``c - i`` of ``mat`` for ``0 <= i < c/2``, where
     ``c`` is the number of columns of ``mat``. If ``perm`` is non-``NULL``, the
@@ -97,9 +97,14 @@ Concatenate
 --------------------------------------------------------------------------------
 
 
-.. function:: void fq_nmod_mat_concat_vertical(fq_nmod_mat_t res, const fq_nmod_mat_t mat1, const fq_nmod_mat_t mat2, const fq_nmod_ctx_t ctx) Sets \code{res} to vertical concatenation of (\code{mat1}, \code{mat2}) in that order. Matrix dimensions : \code{mat1} : $m \times n$, \code{mat2} : $k \times n$, \code{res} : $(m + k) \times n$.
+.. function:: void fq_nmod_mat_concat_vertical(fq_nmod_mat_t res, const fq_nmod_mat_t mat1, const fq_nmod_mat_t mat2, const fq_nmod_ctx_t ctx)
 
-.. function:: void fq_nmod_mat_concat_horizontal(fq_nmod_mat_t res, const fq_nmod_mat_t mat1, const fq_nmod_mat_t mat2, const fq_nmod_ctx_t ctx) Sets \code{res} to horizontal concatenation of (\code{mat1}, \code{mat2}) in that order. Matrix dimensions : \code{mat1} : $m \times n$, \code{mat2} : $m \times k$, \code{res}  : $m \times (n + k)$.
+    Sets ``res`` to vertical concatenation of (``mat1``, ``mat2``) in that order. Matrix dimensions : ``mat1`` : `m \times n`, ``mat2`` : `k \times n`, ``res`` : `(m + k) \times n`.
+
+
+.. function:: void fq_nmod_mat_concat_horizontal(fq_nmod_mat_t res, const fq_nmod_mat_t mat1, const fq_nmod_mat_t mat2, const fq_nmod_ctx_t ctx)
+
+    Sets ``res`` to horizontal concatenation of (``mat1``, ``mat2``) in that order. Matrix dimensions : ``mat1`` : `m \times n`, ``mat2`` : `m \times k`, ``res``  : `m \times (n + k)`.
 
 
 Printing
@@ -180,7 +185,7 @@ Random matrix generation
     `\mathbf{F}_{q}`.
 
     The matrix can be transformed into a dense matrix with unchanged
-    rank by subsequently calling ``fq_nmod_mat_randops()``.
+    rank by subsequently calling :func:`fq_nmod_mat_randops`.
 
 .. function:: void fq_nmod_mat_randops(fq_nmod_mat_t mat, slong count, flint_rand_t state, const fq_nmod_ctx_t ctx)
 
@@ -197,7 +202,7 @@ Random matrix generation
     otherwise it will have random nonzero entries on the main
     diagonal.
 
-.. function:: void fq_nmod_mat_randtriu(fq_nmod_mat_t mat, flint_rand_t state, int unit, x      const fq_nmod_ctx_t ctx)
+.. function:: void fq_nmod_mat_randtriu(fq_nmod_mat_t mat, flint_rand_t state, int unit, const fq_nmod_ctx_t ctx)
 
     Sets ``mat`` to a random upper triangular matrix. If
     ``unit`` is 1, it will have ones on the main diagonal,
@@ -256,9 +261,8 @@ Matrix multiplication
 .. function:: void fq_nmod_mat_mul(fq_nmod_mat_t C, const fq_nmod_mat_t A, const fq_nmod_mat_t B,  const fq_nmod_ctx_t ctx)
 
     Sets `C = AB`. Dimensions must be compatible for matrix
-    multiplication.  `C` is not allowed to be aliased with `A` or
-    `B`. This function automatically chooses between classical and
-    KS multiplication.
+    multiplication. Aliasing is allowed. This function automatically chooses
+    between classical and KS multiplication.
 
 .. function:: void fq_nmod_mat_mul_classical(fq_nmod_mat_t C, const fq_nmod_mat_t A, const fq_nmod_mat_t B, const fq_nmod_ctx_t ctx)
 
@@ -391,11 +395,11 @@ Triangular solving
 
     Uses the block inversion formula
 
-    ``
-    \begin{pmatrix} A & 0 \\ C & D \end{pmatrix}^{-1}
-    \begin{pmatrix} X \\ Y \end{pmatrix} =
-    \begin{pmatrix} A^{-1} X \\ D^{-1} ( Y - C A^{-1} X ) \end{pmatrix}
-    ``
+    .. math ::
+        \begin{pmatrix} A & 0 \\ C & D \end{pmatrix}^{-1}
+        \begin{pmatrix} X \\ Y \end{pmatrix} =
+        \begin{pmatrix} A^{-1} X \\ D^{-1} ( Y - C A^{-1} X ) \end{pmatrix}
+    
 
     to reduce the problem to matrix multiplication and triangular
     solving of smaller systems.
@@ -427,11 +431,11 @@ Triangular solving
 
     Uses the block inversion formula
 
-    ``
-    \begin{pmatrix} A & B \\ 0 & D \end{pmatrix}^{-1}
-    \begin{pmatrix} X \\ Y \end{pmatrix} =
-    \begin{pmatrix} A^{-1} (X - B D^{-1} Y) \\ D^{-1} Y \end{pmatrix}
-    ``
+    .. math ::
+        \begin{pmatrix} A & B \\ 0 & D \end{pmatrix}^{-1}
+        \begin{pmatrix} X \\ Y \end{pmatrix} =
+        \begin{pmatrix} A^{-1} (X - B D^{-1} Y) \\ D^{-1} Y \end{pmatrix}
+    
 
     to reduce the problem to matrix multiplication and triangular
     solving of smaller systems.

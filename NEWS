@@ -18,7 +18,7 @@ v 1.0.2 -- 10-Dec-07
 
 v 1.0.3 -- 16-Dec-07
 
-   * Fixed a bug in the polynomial memory managment code which caused a segfault
+   * Fixed a bug in the polynomial memory management code which caused a segfault
    * Fixed a bug in the pseudo division code which caused a block overrun
     
 v 1.0.4 -- 04-Jan-08
@@ -895,7 +895,7 @@ fmpz_poly
   * added scalar mul_2exp, fdiv_2exp, tdiv_2exp
   * made randtest produce sparse output
   * added fmpz_poly_equal_fmpz
-  * improved performance by always using basecase multiplicatio
+  * improved performance by always using basecase multiplication
     when one polynomial is short
   * improved algorithm selection for fmpz_poly_gcd
   * fixed several bugs in gcd_modular
@@ -1105,7 +1105,7 @@ v 2.5.0 -- 07 Aug 2015
 
   * LLL (rational, Nguyen-Stehle, from Gram matrix, with_removal, Storjohann/ULLL)
   * Hermite normal form (naive, xgcd, Domich-Kannan-Trotter, Kannan-Bachem, Pernet-Stein)
-  * Smith normal form (diagonal, Kannen-Bachem, Iliopoulos)
+  * Smith normal form (diagonal, Kannan-Bachem, Iliopoulos)
   * Paterson-Stockmeyer algorithm
   * modular resultant
   * hgcd resultant
@@ -1159,4 +1159,81 @@ v 2.5.2 -- 13 Aug 2015
 
   * Fix further issues with soname versioning and ldconfig
   * Fix a bug when using GMP instead of MPIR.
+
+v 2.6.0 -- 5 Jun 2020
+
+  * multivariate polynomials over most standard rings (sparse distributed)
+  * APR-CL primality proving
+  * elliptic curve integer factoring
+  * minpoly and charpoly
+  * improved quadratic sieve for integer factoring
+  * embeddings of finite fields
+  * pollard rho integer factoring
+  * p+1 integer factoring
+  * best of breed smooth integer factoring routine
+  * best of breed general integer factoring routine
+  * howell and strong echelon form
+  * large speedups for solve and hence inverse over Z and Q
+  * randprime and nextprime functions
+  * pernet-stein HNF improvements
+  * moller-granlund precomputed inverses
+  * resultant_modular_div
+  * fibonacci polynomials
+  * exception mechanism/flint_abort
+  * sqrt of series and polynomials
+  * division of series over Z
+  * power sums
+  * improved base cases of various power series functions
+  * ability to switch memory allocators
+  * fast recurrence for Hermite polys
+  * shifted Legendre polynomials
+  * Laguerre polynomials
+  * Gegenbauer polys
+  * sphinx documentation
+  * van hoeij with gradual feeding implementation of polynomial factoring over Z
+  * perfect power detection
+  * divisibility testing for polynomials
+  * fast block based memory manager for bundling fmpz allocations
+  * uniform random generation
+  * CMake build system
+  * linear algebra speedups when everything can be kept in longs
+  * nmod module for integers mod (small) n
+  * fmpz_mod_mat module for matrices over integers mod multiprecision n
+  * kronecker product (tensor product)
+  * random primitive polys (for finite fields)
+  * thread pool implementation
+  * threading of FFT for integer and polynomial multiplication over Z
+  * threading of quadratic sieve for integer factoring
+  * improved threading of factoring of polynomials mod p
+  * threading for multivariate polynomial multiplication, division and GCD
+  * threaded multiplication of matrices mod p
+  * Berlekamp-Massey (nmod)
+  * fmpz_mod module for integers mod multiprecision n
+  * Pohlig-Hellman (discrete log)
+  * farey_neighbours
+  * remove openMP option
+  * additional integer division variants
+  * speed up mpn_mulmod_preinv
+  * fft precaching
+  * cyclotomic polynomial detection
+  * polynomial root finding over finite fields
+  * GMP 6.2 support
+  * MPIR 3.0.0 support
+  * many small speedups and additional convenience functions added
+
+v 2.6.1 -- 23 Jul 2020
+
+ * Fix issues on Debian major architectures
+ * Fix numerous reported bugs (mpoly, fq_poly, mpn_mul_1, mod 2 code, etc.)
+
+v 2.6.2 -- 31 Jul 2020
+
+ * Fix for choice of generator in an fq finite field of degree one
+ * Fix an incorrectly written test
+
+v 2.6.3 -- 12 Aug 2020
+
+ * Fix a bug in generator of finite field in characteristic 2
+ * Allow Flint to work with GMP 6.1.2 and 6.2.0 interchangeably
+ * Fix some old license headers
 

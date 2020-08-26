@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -47,7 +47,7 @@ main(void)
         nmod_mpoly_assert_canonical(h, ctx);
         flint_set_num_threads(2);
         flint_set_thread_affinity(aff, 2);
-        result2 = nmod_mpoly_divides_heap_threaded(h2, p, f, ctx, MPOLY_DEFAULT_THREAD_LIMIT);
+        result2 = nmod_mpoly_divides_heap_threaded(h2, p, f, ctx);
         nmod_mpoly_assert_canonical(h2, ctx);
         flint_restore_thread_affinity();
 
@@ -99,9 +99,9 @@ main(void)
         for (j = 0; j < 4; j++)
         {
             nmod_mpoly_randtest_bits(f, state, len1, exp_bits1, ctx);
-            do {
-                nmod_mpoly_randtest_bits(g, state, len2, exp_bits2, ctx);
-            } while (g->length == 0);
+            nmod_mpoly_randtest_bits(g, state, len2, exp_bits2, ctx);
+            if (nmod_mpoly_is_zero(g, ctx))
+                nmod_mpoly_one(g, ctx);
             nmod_mpoly_randtest_bits(h, state, len, exp_bits, ctx);
             nmod_mpoly_randtest_bits(k, state, len, exp_bits, ctx);
 
@@ -109,7 +109,7 @@ main(void)
 
             nmod_mpoly_mul_johnson(h, f, g, ctx);
             nmod_mpoly_assert_canonical(h, ctx);
-            result = nmod_mpoly_divides_heap_threaded(k, h, g, ctx, MPOLY_DEFAULT_THREAD_LIMIT);
+            result = nmod_mpoly_divides_heap_threaded(k, h, g, ctx);
             nmod_mpoly_assert_canonical(k, ctx);
             result = result && nmod_mpoly_equal(f, k, ctx);
 
@@ -158,16 +158,16 @@ main(void)
         for (j = 0; j < 4; j++)
         {
             nmod_mpoly_randtest_bits(f, state, len1, exp_bits1, ctx);
-            do {
-                nmod_mpoly_randtest_bits(g, state, len2, exp_bits2, ctx);
-            } while (g->length == 0);
+            nmod_mpoly_randtest_bits(g, state, len2, exp_bits2, ctx);
+            if (nmod_mpoly_is_zero(g, ctx))
+                nmod_mpoly_one(g, ctx);
             nmod_mpoly_randtest_bits(h, state, len, exp_bits, ctx);
 
             flint_set_num_threads(n_randint(state, max_threads) + 1);
 
             nmod_mpoly_mul_johnson(h, f, g, ctx);
             nmod_mpoly_assert_canonical(h, ctx);
-            result = nmod_mpoly_divides_heap_threaded(g, h, g, ctx, MPOLY_DEFAULT_THREAD_LIMIT);
+            result = nmod_mpoly_divides_heap_threaded(g, h, g, ctx);
             nmod_mpoly_assert_canonical(g, ctx);
             result = result && nmod_mpoly_equal(f, g, ctx);
 
@@ -215,16 +215,16 @@ main(void)
         for (j = 0; j < 4; j++)
         {
             nmod_mpoly_randtest_bits(f, state, len1, exp_bits1, ctx);
-            do {
-                nmod_mpoly_randtest_bits(g, state, len2, exp_bits2, ctx);
-            } while (g->length == 0);
+            nmod_mpoly_randtest_bits(g, state, len2, exp_bits2, ctx);
+            if (nmod_mpoly_is_zero(g, ctx))
+                nmod_mpoly_one(g, ctx);
             nmod_mpoly_randtest_bits(h, state, len, exp_bits, ctx);
 
             flint_set_num_threads(n_randint(state, max_threads) + 1);
 
             nmod_mpoly_mul_johnson(h, f, g, ctx);
             nmod_mpoly_assert_canonical(h, ctx);
-            result = nmod_mpoly_divides_heap_threaded(h, h, g, ctx, MPOLY_DEFAULT_THREAD_LIMIT);
+            result = nmod_mpoly_divides_heap_threaded(h, h, g, ctx);
             nmod_mpoly_assert_canonical(h, ctx);
             result = result && nmod_mpoly_equal(f, h, ctx);
 
@@ -274,9 +274,9 @@ main(void)
         for (j = 0; j < 4; j++)
         {
             nmod_mpoly_randtest_bits(f, state, len1, exp_bits1, ctx);
-            do {
-                nmod_mpoly_randtest_bits(g, state, len2, exp_bits2, ctx);
-            } while (g->length == 0);
+            nmod_mpoly_randtest_bits(g, state, len2, exp_bits2, ctx);
+            if (nmod_mpoly_is_zero(g, ctx))
+                nmod_mpoly_one(g, ctx);
             nmod_mpoly_randtest_bound(p, state, len3, exp_bound3, ctx);
 
             flint_set_num_threads(n_randint(state, max_threads) + 1);
@@ -285,7 +285,7 @@ main(void)
             nmod_mpoly_add(f, f, p, ctx);
             result = nmod_mpoly_divides_monagan_pearce(h1, f, g, ctx);
             nmod_mpoly_assert_canonical(h1, ctx);
-            result2 = nmod_mpoly_divides_heap_threaded(h2, f, g, ctx, MPOLY_DEFAULT_THREAD_LIMIT);
+            result2 = nmod_mpoly_divides_heap_threaded(h2, f, g, ctx);
             nmod_mpoly_assert_canonical(h2, ctx);
 
             if (result != result2 || !nmod_mpoly_equal(h1, h2, ctx))
@@ -336,9 +336,9 @@ main(void)
         for (j = 0; j < 4; j++)
         {
             nmod_mpoly_randtest_bits(f, state, len1, exp_bits1, ctx);
-            do {
-                nmod_mpoly_randtest_bits(g, state, len2, exp_bits2, ctx);
-            } while (g->length == 0);
+            nmod_mpoly_randtest_bits(g, state, len2, exp_bits2, ctx);
+            if (nmod_mpoly_is_zero(g, ctx))
+                nmod_mpoly_one(g, ctx);
             nmod_mpoly_randtest_bound(p, state, len3, exp_bound3, ctx);
 
             flint_set_num_threads(n_randint(state, max_threads) + 1);
@@ -347,7 +347,7 @@ main(void)
             nmod_mpoly_add(f, f, p, ctx);
             result = nmod_mpoly_divides_monagan_pearce(h1, f, g, ctx);
             nmod_mpoly_assert_canonical(h1, ctx);
-            result2 = nmod_mpoly_divides_heap_threaded(f, f, g, ctx, MPOLY_DEFAULT_THREAD_LIMIT);
+            result2 = nmod_mpoly_divides_heap_threaded(f, f, g, ctx);
             nmod_mpoly_assert_canonical(f, ctx);
 
             if (result != result2 || !nmod_mpoly_equal(h1, f, ctx))
@@ -397,9 +397,9 @@ main(void)
         for (j = 0; j < 4; j++)
         {
             nmod_mpoly_randtest_bits(f, state, len1, exp_bits1, ctx);
-            do {
-                nmod_mpoly_randtest_bits(g, state, len2, exp_bits2, ctx);
-            } while (g->length == 0);
+            nmod_mpoly_randtest_bits(g, state, len2, exp_bits2, ctx);
+            if (nmod_mpoly_is_zero(g, ctx))
+                nmod_mpoly_one(g, ctx);
             nmod_mpoly_randtest_bound(p, state, len3, exp_bound3, ctx);
 
             flint_set_num_threads(n_randint(state, max_threads) + 1);
@@ -408,7 +408,7 @@ main(void)
             nmod_mpoly_add(f, f, p, ctx);
             result = nmod_mpoly_divides_monagan_pearce(h1, f, g, ctx);
             nmod_mpoly_assert_canonical(h1, ctx);
-            result2 = nmod_mpoly_divides_heap_threaded(g, f, g, ctx, MPOLY_DEFAULT_THREAD_LIMIT);
+            result2 = nmod_mpoly_divides_heap_threaded(g, f, g, ctx);
             nmod_mpoly_assert_canonical(g, ctx);
 
             if (result != result2 || !nmod_mpoly_equal(h1, g, ctx))

@@ -1,13 +1,14 @@
 /*
     Copyright (C) 2012 Lina Kulakova
     Copyright (C) 2013, 2014 Martin Lee
+    Copyright (C) 2020 William Hart
 
     This file is part of FLINT.
 
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #undef ulong
@@ -61,13 +62,9 @@ void nmod_poly_factor_distinct_deg(nmod_poly_factor_t res,
     }
     H = h + (l + 1);
     I = H + m;
-    nmod_poly_init_preinv(h[0], poly->mod.n, poly->mod.ninv);
-    nmod_poly_init_preinv(h[1], poly->mod.n, poly->mod.ninv);
-    for (i = 0; i < m; i++)
-    {
-        nmod_poly_init_preinv(H[i], poly->mod.n, poly->mod.ninv);
-        nmod_poly_init_preinv(I[i], poly->mod.n, poly->mod.ninv);
-    }
+
+    for (i = 0; i < 2*m + l + 1; i++)
+	nmod_poly_init_mod(h[i], poly->mod);
 
     nmod_poly_reverse(vinv, v, v->length);
     nmod_poly_inv_series(vinv, vinv, v->length);
@@ -81,12 +78,14 @@ void nmod_poly_factor_distinct_deg(nmod_poly_factor_t res,
                                                         (1 << (i - 1))),
                                                         *(h + 1),
                                                         (1 << (i - 1)),
-                                                        (1 << (i - 1)), v,
-                                                        vinv);
+                                                        (1 << (i - 1)),
+							*(h + (1 << (i - 1))),
+							v, vinv);
         nmod_poly_compose_mod_brent_kung_vec_preinv(*(h + 1 + (1 << (i - 1))),
                                                     *(h + 1), (1 << (i - 1)),
-                                                    l - (1 << (i - 1)), v,
-                                                    vinv);
+                                                    l - (1 << (i - 1)),
+						    *(h + (1 << (i - 1))),
+						    v, vinv);
     }
     else
     {

@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -24,12 +24,11 @@
    exponent vectors all fit in a single word. The exponent vectors are
    assumed to have fields with the given number of bits. Assumes input polys
    are nonzero. Implements "Polynomial division using dynamic arrays, heaps
-   and packed exponents" by Michael Monagan and Roman Pearce [1], except that
-   we use a heap with smallest exponent at head. Note that if a < b then
-   (n - b) < (n - b) where n is the maximum value a and b can take. The word
-   "maxn" is set to an exponent vector whose fields are all set to such a
-   value n. This allows division from left to right with a heap with smallest
-   exponent at the head. Quotient poly is written in reverse order.
+   and packed exponents" by Michael Monagan and Roman Pearce [1]. The word
+   "maxhi" is set to a mask for the degree field of the exponent vector (in
+   the case of a degree ordering) to facilitate the reverse ordering in
+   degrevlex. Division is from left to right with a heap with largest
+   exponent at the head. Quotient poly is written in order.
    [1] http://www.cecm.sfu.ca/~rpearcea/sdmp/sdmp_paper.pdf 
 */
 slong _fmpz_mpoly_div_monagan_pearce1(fmpz ** polyq, ulong ** expq,
@@ -51,7 +50,7 @@ slong _fmpz_mpoly_div_monagan_pearce1(fmpz ** polyq, ulong ** expq,
     ulong acc_sm[3];
     int lt_divides, small;
     slong bits2, bits3;
-    ulong lc_norm, lc_abs, lc_sign, lc_n, lc_i;
+    ulong lc_norm = 0, lc_abs = 0, lc_sign = 0, lc_n = 0, lc_i = 0;
     TMP_INIT;
 
     TMP_START;
@@ -72,7 +71,7 @@ slong _fmpz_mpoly_div_monagan_pearce1(fmpz ** polyq, ulong ** expq,
     chain = (mpoly_heap_t *) TMP_ALLOC(len3*sizeof(mpoly_heap_t));
     store = store_base = (slong *) TMP_ALLOC(2*len3*sizeof(mpoly_heap_t *));
 
-    /* space for flagged heap indicies */
+    /* space for flagged heap indices */
     hind = (slong *) TMP_ALLOC(len3*sizeof(slong));
     for (i = 0; i < len3; i++)
         hind[i] = 1;
@@ -94,12 +93,15 @@ slong _fmpz_mpoly_div_monagan_pearce1(fmpz ** polyq, ulong ** expq,
     x->next = NULL;
     HEAP_ASSIGN(heap[1], exp2[0], x);
 
-    /* precompute leading cofficient info assuming "small" case */
-    lc_abs = FLINT_ABS(poly3[0]);
-    lc_sign = FLINT_SIGN_EXT(poly3[0]);
-    count_leading_zeros(lc_norm, lc_abs);
-    lc_n = lc_abs << lc_norm;
-    invert_limb(lc_i, lc_n);
+    /* precompute leading coefficient info assuming "small" case */
+    if (small)
+    {
+        lc_abs = FLINT_ABS(poly3[0]);
+        lc_sign = FLINT_SIGN_EXT(poly3[0]);
+        count_leading_zeros(lc_norm, lc_abs);
+        lc_n = lc_abs << lc_norm;
+        invert_limb(lc_i, lc_n);
+    }
 
     while (heap_len > 1)
     {
@@ -115,7 +117,7 @@ slong _fmpz_mpoly_div_monagan_pearce1(fmpz ** polyq, ulong ** expq,
 
         if (!lt_divides)
         {
-            /* optimation: coeff arithmetic not needed */
+            /* optimization: coeff arithmetic not needed */
 
             if (mpoly_monomial_gt1(exp3[0], exp, maskhi))
             {
@@ -250,6 +252,7 @@ slong _fmpz_mpoly_div_monagan_pearce1(fmpz ** polyq, ulong ** expq,
             if (ds == FLINT_SIGN_EXT(acc_sm[1]) && d1 < lc_abs)
             {
                 ulong qq, rr, nhi, nlo;
+                FLINT_ASSERT(0 < lc_norm && lc_norm < FLINT_BITS);
                 nhi = (d1 << lc_norm) | (d0 >> (FLINT_BITS - lc_norm));
                 nlo = d0 << lc_norm;
                 udiv_qrnnd_preinv(qq, rr, nhi, nlo, lc_n, lc_i);
@@ -258,10 +261,12 @@ slong _fmpz_mpoly_div_monagan_pearce1(fmpz ** polyq, ulong ** expq,
                 if (qq == 0)
                     continue;
 
-                if ((qq & (WORD(3) << (FLINT_BITS - 2))) == 0)
+                if (qq <= COEFF_MAX)
                 {
                     _fmpz_demote(q_coeff + q_len);
-                    q_coeff[q_len] = (qq^ds^lc_sign) - (ds^lc_sign);
+                    q_coeff[q_len] = qq;
+                    if (ds != lc_sign)
+                        q_coeff[q_len] = -q_coeff[q_len];
                 }
                 else
                 {
@@ -290,7 +295,7 @@ large_lt_divides:
                 continue;
         }
 
-        /* put newly generated quotient term back into the heap if neccesary */
+        /* put newly generated quotient term back into the heap if necessary */
         if (s > 1)
         {
             i = 1;
@@ -351,7 +356,7 @@ slong _fmpz_mpoly_div_monagan_pearce(fmpz ** polyq,
     slong * hind;
     int lt_divides, small;
     slong bits2, bits3;
-    ulong lc_norm, lc_abs, lc_sign, lc_n, lc_i;
+    ulong lc_norm = 0, lc_abs = 0, lc_sign = 0, lc_n = 0, lc_i = 0;
     TMP_INIT;
 
     if (N == 1)
@@ -388,7 +393,7 @@ slong _fmpz_mpoly_div_monagan_pearce(fmpz ** polyq,
     for (i = 0; i < len3; i++)
         exp_list[i] = exps + i*N;
 
-    /* space for flagged heap indicies */
+    /* space for flagged heap indices */
     hind = (slong *) TMP_ALLOC(len3*sizeof(slong));
     for (i = 0; i < len3; i++)
         hind[i] = 1;
@@ -412,12 +417,15 @@ slong _fmpz_mpoly_div_monagan_pearce(fmpz ** polyq,
     heap[1].exp = exp_list[exp_next++];
     mpoly_monomial_set(heap[1].exp, exp2, N);
 
-    /* precompute leading cofficient info assuming "small" case */
-    lc_abs = FLINT_ABS(poly3[0]);
-    lc_sign = FLINT_SIGN_EXT(poly3[0]);
-    count_leading_zeros(lc_norm, lc_abs);
-    lc_n = lc_abs << lc_norm;
-    invert_limb(lc_i, lc_n);
+    /* precompute leading coefficient info in "small" case */
+    if (small)
+    {
+        lc_abs = FLINT_ABS(poly3[0]);
+        lc_sign = FLINT_SIGN_EXT(poly3[0]);
+        count_leading_zeros(lc_norm, lc_abs);
+        lc_n = lc_abs << lc_norm;
+        invert_limb(lc_i, lc_n);
+    }
 
     while (heap_len > 1)
     {
@@ -445,7 +453,7 @@ slong _fmpz_mpoly_div_monagan_pearce(fmpz ** polyq,
 
         if (!lt_divides)
         {
-            /* optimation: coeff arithmetic not needed */
+            /* optimization: coeff arithmetic not needed */
 
             if (mpoly_monomial_gt(exp3 + 0, exp, N, cmpmask))
             {
@@ -492,7 +500,7 @@ slong _fmpz_mpoly_div_monagan_pearce(fmpz ** polyq,
         }
         else
         {
-            /* general coeff arithmetic*/
+            /* general coeff arithmetic */
 
             fmpz_zero(acc_lg);
             do
@@ -603,32 +611,38 @@ slong _fmpz_mpoly_div_monagan_pearce(fmpz ** polyq,
             if (ds == FLINT_SIGN_EXT(acc_sm[1]) && d1 < lc_abs)
             {
                 ulong qq, rr, nhi, nlo;
+                FLINT_ASSERT(0 < lc_norm && lc_norm < FLINT_BITS);
                 nhi = (d1 << lc_norm) | (d0 >> (FLINT_BITS - lc_norm));
                 nlo = d0 << lc_norm;
                 udiv_qrnnd_preinv(qq, rr, nhi, nlo, lc_n, lc_i);
                 (void) rr;
+
                 if (qq == 0)
-                {
                     continue;
-                }
-                if ((qq & (WORD(3) << (FLINT_BITS - 2))) == 0)
+
+                if (qq <= COEFF_MAX)
                 {
                     _fmpz_demote(q_coeff + q_len);
-                    q_coeff[q_len] = (qq^ds^lc_sign) - (ds^lc_sign);
-                } else
+                    q_coeff[q_len] = qq;
+                    if (ds != lc_sign)
+                        q_coeff[q_len] = -q_coeff[q_len];
+                }
+                else
                 {
                     small = 0;
                     fmpz_set_ui(q_coeff + q_len, qq);
                     if (ds != lc_sign)
                         fmpz_neg(q_coeff + q_len, q_coeff + q_len);
                 }
-            } else
+            }
+            else
             {
                 small = 0;
                 fmpz_set_signed_uiuiui(acc_lg, acc_sm[2], acc_sm[1], acc_sm[0]);
                 goto large_lt_divides;
             }
-        } else
+        }
+        else
         {
             if (fmpz_is_zero(acc_lg))
             {
@@ -642,7 +656,7 @@ large_lt_divides:
             }
         }
 
-        /* put newly generated quotient term back into the heap if neccesary */
+        /* put newly generated quotient term back into the heap if necessary */
         if (s > 1)
         {
             i = 1;
@@ -697,7 +711,6 @@ void fmpz_mpoly_div_monagan_pearce(fmpz_mpoly_t q, const fmpz_mpoly_t poly2,
     int free2 = 0, free3 = 0;
     fmpz_mpoly_t temp1;
     fmpz_mpoly_struct * tq;
-    TMP_INIT;
 
    /* check divisor is nonzero */
    if (poly3->length == 0)
@@ -710,13 +723,11 @@ void fmpz_mpoly_div_monagan_pearce(fmpz_mpoly_t q, const fmpz_mpoly_t poly2,
       return;
    }
 
-   TMP_START;
-
    /* maximum bits in quotient exps and inputs is max for poly2 and poly3 */
    exp_bits = FLINT_MAX(poly2->bits, poly3->bits);
 
     N = mpoly_words_per_exp(exp_bits, ctx->minfo);
-    cmpmask = (ulong*) TMP_ALLOC(N*sizeof(ulong));
+    cmpmask = (ulong *) flint_malloc(N*sizeof(ulong));
     mpoly_get_cmpmask(cmpmask, N, exp_bits, ctx->minfo);
 
    /* ensure input exponents packed to same size as output exponents */
@@ -758,7 +769,7 @@ void fmpz_mpoly_div_monagan_pearce(fmpz_mpoly_t q, const fmpz_mpoly_t poly2,
       tq = q;
    }
 
-   /* do division with remainder */
+   /* do division without remainder */
    while ((lenq = _fmpz_mpoly_div_monagan_pearce(&tq->coeffs, &tq->exps,
                          &tq->alloc, poly2->coeffs, exp2, poly2->length, 
                                      poly3->coeffs, exp3, poly3->length,
@@ -770,7 +781,7 @@ void fmpz_mpoly_div_monagan_pearce(fmpz_mpoly_t q, const fmpz_mpoly_t poly2,
       exp_bits = mpoly_fix_bits(exp_bits + 1, ctx->minfo);
 
       N = mpoly_words_per_exp(exp_bits, ctx->minfo);
-      cmpmask = (ulong*) TMP_ALLOC(N*sizeof(ulong));
+      cmpmask = (ulong *) flint_realloc(cmpmask, N*sizeof(ulong));
       mpoly_get_cmpmask(cmpmask, N, exp_bits, ctx->minfo);
 
       exp2 = (ulong *) flint_malloc(N*poly2->length*sizeof(ulong));
@@ -810,5 +821,5 @@ cleanup3:
    if (free3)
       flint_free(exp3);
 
-    TMP_END;
+   flint_free(cmpmask);
 }

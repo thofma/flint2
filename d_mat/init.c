@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "d_mat.h"
@@ -18,7 +18,7 @@ d_mat_init(d_mat_t mat, slong rows, slong cols)
     if (rows != 0 && cols != 0)       /* Allocate space for r*c small entries */
     {
         slong i;
-        mat->entries = (double *) flint_calloc(rows*cols, sizeof(double));
+        mat->entries = (double *) flint_calloc(flint_mul_sizes(rows, cols), sizeof(double));
         mat->rows = (double **) flint_malloc(rows*sizeof(double *));  /* Initialise rows */
 
         for (i = 0; i < rows; i++)

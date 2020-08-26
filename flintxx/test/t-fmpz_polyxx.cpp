@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <iostream>
@@ -320,13 +320,13 @@ test_functions()
     f *= 2;
     ulong d = 0;
     ltupleref(r, s, d) = pseudo_divrem(g, f);
-    tassert(r*f + s == g*pow(2, d));
+    tassert(r*f + s == g*fmpzxx(pow(2, d) + 0.5));
     r = 0; r = 0; d = 0;
     ltupleref(r, s, d) = pseudo_divrem_basecase(g, f);
-    tassert(r*f + s == g*pow(2, d));
+    tassert(r*f + s == g*fmpzxx(pow(2, d) + 0.5));
     r = 0; r = 0; d = 0;
     ltupleref(r, s, d) = pseudo_divrem_divconquer(g, f);
-    tassert(r*f + s == g*pow(2, d));
+    tassert(r*f + s == g*fmpzxx(pow(2, d) + 0.5));
 
     tassert(pseudo_div(g, f).get<0>() == r);
     tassert(pseudo_rem(g, f).get<0>() == s);

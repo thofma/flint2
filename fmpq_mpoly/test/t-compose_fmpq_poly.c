@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -77,8 +77,13 @@ main(void)
 
         if (fmpq_mpoly_total_degree_si(f, ctx1) < 50)
         {
-            fmpq_mpoly_compose_fmpq_poly(g, f, vals1, ctx1);
-            fmpq_mpoly_evaluate_all_fmpq(fe, f, vals3, ctx1);
+            if (!fmpq_mpoly_compose_fmpq_poly(g, f, vals1, ctx1) ||
+                !fmpq_mpoly_evaluate_all_fmpq(fe, f, vals3, ctx1))
+            {
+                printf("FAIL\n");
+                flint_printf("Check evaluation success\ni: %wd\n", i);
+                flint_abort();
+            }
             fmpq_poly_evaluate_fmpq(ge, g, vals2);
             if (!fmpq_equal(fe, ge))
             {
@@ -163,8 +168,13 @@ main(void)
         if (fmpq_mpoly_total_degree_si(f, ctx1) < 50)
         {
             fmpq_poly_t t;
-            fmpq_mpoly_compose_fmpq_poly(g, f, vals1, ctx1);
-            fmpq_mpoly_evaluate_all_fmpq(fe, f, vals3, ctx1);
+            if (!fmpq_mpoly_compose_fmpq_poly(g, f, vals1, ctx1) ||
+                !fmpq_mpoly_evaluate_all_fmpq(fe, f, vals3, ctx1))
+            {
+                printf("FAIL\n");
+                flint_printf("Check evaluation success\ni: %wd\n", i);
+                flint_abort();
+            }
             fmpq_poly_init(t);
             fmpq_poly_set_fmpq(t, fe);
             if (!fmpq_poly_equal(g, t))
@@ -246,8 +256,13 @@ main(void)
 
         {
             fmpq_poly_t t;
-            fmpq_mpoly_compose_fmpq_poly(g, f, vals1, ctx1);
-            fmpq_mpoly_evaluate_all_fmpq(fe, f, vals3, ctx1);
+            if (!fmpq_mpoly_compose_fmpq_poly(g, f, vals1, ctx1) ||
+                !fmpq_mpoly_evaluate_all_fmpq(fe, f, vals3, ctx1))
+            {
+                printf("FAIL\n");
+                flint_printf("Check evaluation success\ni: %wd\n", i);
+                flint_abort();
+            }
             fmpq_poly_init(t);
             fmpq_poly_set_fmpq(t, fe);
             if (!fmpq_poly_equal(g, t))

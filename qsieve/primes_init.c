@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "qsieve.h"
@@ -53,6 +53,7 @@ compute_factor_base(mp_limb_t * small_factor, qs_t qs_inf, slong num_primes)
 
         if (nmod == 0)
         {
+            n_primes_clear(iter);
             *small_factor = p;
             return factor_base;
         }
@@ -147,7 +148,7 @@ mp_limb_t qsieve_primes_init(qs_t qs_inf)
     fmpz_init(qs_inf->target_A);
     fmpz_mul_2exp(qs_inf->target_A, qs_inf->kn, 1);
     fmpz_sqrt(qs_inf->target_A, qs_inf->target_A);
-    fmpz_tdiv_q_ui(qs_inf->target_A, qs_inf->target_A, qs_inf->sieve_size/2); 
+    fmpz_tdiv_q_ui(qs_inf->target_A, qs_inf->target_A, qs_inf->sieve_size/2);
 
     /* consider k and 2 and -1 as factor base primes */
     factor_base[0].p = k;

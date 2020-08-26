@@ -9,7 +9,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifndef FMPZ_POLY_H
@@ -71,6 +71,19 @@ typedef struct {
 } fmpz_poly_factor_struct;
 
 typedef fmpz_poly_factor_struct fmpz_poly_factor_t[1];
+
+typedef struct
+{
+   mp_limb_t ** jj; /* used by fft_convolution_precache */
+   slong n;
+   slong len2;
+   slong loglen;
+   slong bits2;
+   slong limbs;
+   fmpz_poly_t poly2;
+} fmpz_poly_mul_precache_struct;
+
+typedef fmpz_poly_mul_precache_struct fmpz_poly_mul_precache_t[1];
 
 /*  Memory management ********************************************************/
 
@@ -173,6 +186,14 @@ FLINT_DLL void _fmpz_poly_reverse(fmpz * res, const fmpz * poly, slong len, slon
 
 FLINT_DLL void fmpz_poly_reverse(fmpz_poly_t res, const fmpz_poly_t poly, slong n);
 
+FLINT_DLL ulong fmpz_poly_deflation(const fmpz_poly_t input);
+
+FLINT_DLL void fmpz_poly_deflate(fmpz_poly_t result, const fmpz_poly_t input,
+                                                              ulong deflation);
+
+FLINT_DLL void fmpz_poly_inflate(fmpz_poly_t result, const fmpz_poly_t input,
+                                                              ulong inflation);
+
 FMPZ_POLY_INLINE
 void fmpz_poly_truncate(fmpz_poly_t poly, slong newlen)
 {
@@ -252,10 +273,13 @@ int fmpz_poly_is_unit(const fmpz_poly_t op)
 }
 
 FMPZ_POLY_INLINE
-int fmpz_poly_is_x(const fmpz_poly_t op)
+int fmpz_poly_is_gen(const fmpz_poly_t op)
 {
     return (op->length) == 2 && (*(op->coeffs + 1) == WORD(1)) && (*(op->coeffs + 0) == WORD(0));
 }
+
+/* Deprecated */
+#define fmpz_poly_is_x fmpz_poly_is_gen
 
 FMPZ_POLY_INLINE
 int fmpz_poly_equal_fmpz(const fmpz_poly_t poly, const fmpz_t c)
@@ -483,6 +507,26 @@ FLINT_DLL void fmpz_poly_mullow(fmpz_poly_t res,
 
 FLINT_DLL void fmpz_poly_mulhigh_n(fmpz_poly_t res, 
                   const fmpz_poly_t poly1, const fmpz_poly_t poly2, slong n);
+
+/* FFT precached multiplication **********************************************/
+
+FLINT_DLL void fmpz_poly_mul_SS_precache_init(fmpz_poly_mul_precache_t pre,
+                             slong len1, slong bits1, const fmpz_poly_t poly2);
+
+FLINT_DLL void fmpz_poly_mul_precache_clear(fmpz_poly_mul_precache_t pre);
+
+FLINT_DLL void _fmpz_poly_mullow_SS_precache(fmpz * output,
+   const fmpz * input1, slong len1, fmpz_poly_mul_precache_t pre, slong trunc);
+
+FLINT_DLL void fmpz_poly_mullow_SS_precache(fmpz_poly_t res,
+               const fmpz_poly_t poly1, fmpz_poly_mul_precache_t pre, slong n);
+
+FMPZ_POLY_INLINE void fmpz_poly_mul_SS_precache(fmpz_poly_t res,
+                         const fmpz_poly_t poly1, fmpz_poly_mul_precache_t pre)
+{
+    fmpz_poly_mullow_SS_precache(res, poly1, pre,
+		                  FLINT_MAX(poly1->length + pre->len2 - 1, 0));
+}
 
 /* Squaring ******************************************************************/
 
@@ -800,11 +844,11 @@ FLINT_DLL void _fmpz_poly_div_series_divconquer(fmpz * Q, const fmpz * A, slong 
 FLINT_DLL void _fmpz_poly_div_series(fmpz * Q, const fmpz * A, slong Alen,
     const fmpz * B, slong Blen, slong n);
 
-FLINT_DLL void fmpz_poly_div_series_basecase(fmpz_poly_t Q, const fmpz_poly_t A,
-                                         const fmpz_poly_t B, slong n);
+FLINT_DLL void fmpz_poly_div_series_basecase(fmpz_poly_t Q,
+		    const fmpz_poly_t A, const fmpz_poly_t B, slong n);
 
-FLINT_DLL void fmpz_poly_div_series_divconquer(fmpz_poly_t Q, const fmpz_poly_t A,
-                                         const fmpz_poly_t B, slong n);
+FLINT_DLL void fmpz_poly_div_series_divconquer(fmpz_poly_t Q,
+		    const fmpz_poly_t A, const fmpz_poly_t B, slong n);
 
 FLINT_DLL void fmpz_poly_div_series(fmpz_poly_t Q, const fmpz_poly_t A, 
                                          const fmpz_poly_t B, slong n);
@@ -812,10 +856,13 @@ FLINT_DLL void fmpz_poly_div_series(fmpz_poly_t Q, const fmpz_poly_t A,
 /*  Divisibility testing  ***************************************************/
 
 FLINT_DLL int _fmpz_poly_divides(fmpz * q, const fmpz * a, 
-                                         slong len1, const fmpz * b, slong len2);
+                                       slong len1, const fmpz * b, slong len2);
 
-FLINT_DLL int fmpz_poly_divides(fmpz_poly_t q, const fmpz_poly_t a, const fmpz_poly_t b);
+FLINT_DLL int fmpz_poly_divides(fmpz_poly_t q,
+		                     const fmpz_poly_t a, const fmpz_poly_t b);
 
+FLINT_DLL slong fmpz_poly_remove(fmpz_poly_t res, const fmpz_poly_t poly1,
+		                                      const fmpz_poly_t poly2);
 
 /*  Pseudo division  *********************************************************/
 
@@ -945,6 +992,12 @@ FLINT_DLL double _fmpz_poly_evaluate_horner_d_2exp(slong * exp,
 FLINT_DLL double fmpz_poly_evaluate_horner_d_2exp(slong * exp, 
                                              const fmpz_poly_t poly, double d);
 
+FLINT_DLL double _fmpz_poly_evaluate_horner_d_2exp2(slong * exp, const fmpz * poly,
+                                      slong n, double d, slong dexp, ulong prec_in);
+
+FLINT_DLL double fmpz_poly_evaluate_horner_d_2exp2(slong * exp,
+		     const fmpz_poly_t poly, double d, slong dexp, ulong prec);
+
 /*  Composition  *************************************************************/
 
 FLINT_DLL void _fmpz_poly_compose_horner(fmpz * res, const fmpz * poly1, slong len1, 
@@ -977,20 +1030,14 @@ FLINT_DLL void _fmpz_poly_taylor_shift_divconquer(fmpz * poly, const fmpz_t c, s
 FLINT_DLL void fmpz_poly_taylor_shift_divconquer(fmpz_poly_t g, const fmpz_poly_t f,
     const fmpz_t c);
 
-FLINT_DLL void _fmpz_poly_taylor_shift_multi_mod_threaded(fmpz * poly, const fmpz_t c, slong n);
-
-FLINT_DLL void _fmpz_poly_taylor_shift_multi_mod_omp(fmpz * poly, const fmpz_t c, slong n);
+FLINT_DLL void _fmpz_poly_taylor_shift_multi_mod(fmpz * poly, const fmpz_t c, slong n);
 
 FMPZ_POLY_INLINE
 void fmpz_poly_taylor_shift_multi_mod(fmpz_poly_t g, const fmpz_poly_t f, const fmpz_t c)
 {
     if (f != g)
         fmpz_poly_set(g, f);
-#if FLINT_PREFER_OMP
-    _fmpz_poly_taylor_shift_multi_mod_omp(g->coeffs, c, g->length);
-#else
-    _fmpz_poly_taylor_shift_multi_mod_threaded(g->coeffs, c, g->length);
-#endif
+    _fmpz_poly_taylor_shift_multi_mod(g->coeffs, c, g->length);
 }
 
 FLINT_DLL void _fmpz_poly_taylor_shift(fmpz * poly, const fmpz_t c, slong n);
@@ -1091,6 +1138,7 @@ FLINT_DLL void _fmpz_poly_signature(slong * r1, slong * r2, const fmpz * poly, s
 FLINT_DLL void fmpz_poly_signature(slong * r1, slong * r2, const fmpz_poly_t poly);
 
 /*  Input and output  ********************************************************/
+FLINT_DLL int _fmpz_poly_fprint(FILE * file, const fmpz * poly, slong len);
 
 FLINT_DLL int fmpz_poly_fprint(FILE * file, const fmpz_poly_t poly);
 
@@ -1099,6 +1147,18 @@ FLINT_DLL int _fmpz_poly_fprint_pretty(FILE * file,
 
 FLINT_DLL int fmpz_poly_fprint_pretty(FILE * file, 
                                        const fmpz_poly_t poly, const char * x);
+
+FMPZ_POLY_INLINE
+int _fmpz_poly_print_pretty(const fmpz * poly, slong len, const char * x)
+{
+  return _fmpz_poly_fprint_pretty(stdout, poly, len, x);
+}
+
+FMPZ_POLY_INLINE
+int _fmpz_poly_print(const fmpz * poly, slong n)
+{
+  return _fmpz_poly_fprint(stdout, poly, n);
+}
 
 FMPZ_POLY_INLINE
 int fmpz_poly_print(const fmpz_poly_t poly)
@@ -1326,6 +1386,10 @@ FLINT_DLL void _fmpz_poly_cyclotomic(fmpz * a, ulong n, mp_ptr factors,
                                         slong num_factors, ulong phi);
 FLINT_DLL void fmpz_poly_cyclotomic(fmpz_poly_t poly, ulong n);
 
+FLINT_DLL ulong _fmpz_poly_is_cyclotomic(const fmpz * poly, slong len);
+
+FLINT_DLL ulong fmpz_poly_is_cyclotomic(const fmpz_poly_t poly);
+
 FLINT_DLL void _fmpz_poly_cos_minpoly(fmpz * f, ulong n);
 
 FLINT_DLL void fmpz_poly_cos_minpoly(fmpz_poly_t f, ulong n);
@@ -1365,6 +1429,15 @@ FLINT_DLL void fmpz_poly_eta_qexp(fmpz_poly_t f, slong e, slong n);
 FLINT_DLL void _fmpz_poly_theta_qexp(fmpz * f, slong e, slong n);
 
 FLINT_DLL void fmpz_poly_theta_qexp(fmpz_poly_t f, slong e, slong n);
+
+/* Inlines *******************************************************************/
+
+FLINT_DLL void fmpz_poly_add_si(fmpz_poly_t res, const fmpz_poly_t poly, slong c);
+FLINT_DLL void fmpz_poly_sub_si(fmpz_poly_t res, const fmpz_poly_t poly, slong c);
+FLINT_DLL void fmpz_poly_si_sub(fmpz_poly_t res, slong c, const fmpz_poly_t poly);
+FLINT_DLL void fmpz_poly_add_fmpz(fmpz_poly_t res, const fmpz_poly_t poly, fmpz_t c);
+FLINT_DLL void fmpz_poly_sub_fmpz(fmpz_poly_t res, const fmpz_poly_t poly, fmpz_t c);
+FLINT_DLL void fmpz_poly_fmpz_sub(fmpz_poly_t res, fmpz_t c, const fmpz_poly_t poly);
 
 #ifdef __cplusplus
 }

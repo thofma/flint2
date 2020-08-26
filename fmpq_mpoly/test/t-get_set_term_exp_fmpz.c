@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -37,13 +37,13 @@ main(void)
 
         nvars = fmpq_mpoly_ctx_nvars(ctx);
 
-        len = n_randint(state, 50);
-        exp_bits = n_randint(state, 100) + 1;
-        coeff_bits = n_randint(state, 100);
+        do {
+            len = n_randint(state, 50);
+            exp_bits = n_randint(state, 100) + 1;
+            coeff_bits = n_randint(state, 100);
 
-        fmpq_mpoly_randtest_bits(f, state, len, coeff_bits, exp_bits, ctx);
-        if (fmpq_mpoly_length(f, ctx) == 0)
-            continue;
+            fmpq_mpoly_randtest_bits(f, state, len, coeff_bits, exp_bits, ctx);
+        } while (fmpq_mpoly_length(f, ctx) == 0);
 
         for (j = 0; j < 10; j++)
         {

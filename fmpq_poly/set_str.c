@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <errno.h>
@@ -63,7 +63,7 @@ _fmpq_poly_set_str(fmpz * poly, fmpz_t den, const char * str, slong len)
         ans = mpq_set_str(a[i], w, 10);
 
         /* If the format is not correct, clear up and return -1 */
-        if (ans)
+        if (ans || (i + 1 < len && *str == '\0'))
         {
             int j;
             for (j = 0; j <= i; j++)
@@ -102,7 +102,7 @@ fmpq_poly_set_str(fmpq_poly_t poly, const char * str)
     }
     errno = 0;
     len = strtol(str, &endptr, 10);
-    if (errno || len < 0)
+    if (errno || len < 0 || (len > 0 && *endptr == '\0'))
     {
         fmpq_poly_zero(poly);
         return -1;

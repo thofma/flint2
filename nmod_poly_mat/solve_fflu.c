@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "flint.h"
@@ -34,8 +34,16 @@ nmod_poly_mat_solve_fflu(nmod_poly_mat_t X, nmod_poly_t den,
     result = (nmod_poly_mat_fflu(LU, den, perm, LU, 1) == dim);
 
     if (result)
+    {
         nmod_poly_mat_solve_fflu_precomp(X, perm, LU, B);
-    else
+
+        if (_perm_parity(perm, dim))
+        {
+            nmod_poly_neg(den, den);
+
+	    nmod_poly_mat_neg(X, X);
+        }
+    } else
         nmod_poly_zero(den);
 
     _perm_clear(perm);

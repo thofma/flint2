@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -20,13 +20,15 @@
 int
 main(void)
 {
+#if HAVE_PTHREAD && (HAVE_TLS || FLINT_REENTRANT)
     int i;
+#endif
     FLINT_TEST_INIT(state);
 
     flint_printf("taylor_shift_multi_mod....");
     fflush(stdout);
 
-#if FLINT_PREFER_OPENMP || (HAVE_PTHREAD && (HAVE_TLS || FLINT_REENTRANT))
+#if HAVE_PTHREAD && (HAVE_TLS || FLINT_REENTRANT)
 
     /* Check aliasing */
     for (i = 0; i < 100 * flint_test_multiplier(); i++)
@@ -108,12 +110,10 @@ main(void)
     return 0;
 
 #else
-
    FLINT_TEST_CLEANUP(state);
 
    flint_printf("SKIPPED\n");
    return 0;
-
 #endif
 
 }

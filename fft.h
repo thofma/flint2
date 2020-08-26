@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifndef FFT_H
@@ -58,7 +58,7 @@ mp_limb_t mpn_sumdiff_n(mp_ptr s, mp_ptr d, mp_srcptr x, mp_srcptr y, mp_size_t 
 
     if ((s == x && d == y) || (s == y && d == x))
     {
-        t = flint_malloc(n * sizeof(mp_limb_t));
+        t = (mp_ptr) flint_malloc(n * sizeof(mp_limb_t));
         ret = mpn_sub_n(t, x, y, n);
         ret += 2 * mpn_add_n(s, x, y, n);
         flint_mpn_copyi(d, t, n);
@@ -262,9 +262,22 @@ FLINT_DLL void fft_mulmod_2expp1(mp_limb_t * r, mp_limb_t * i1, mp_limb_t * i2,
 FLINT_DLL void flint_mpn_mul_fft_main(mp_ptr r1, mp_srcptr i1, mp_size_t n1,
                         mp_srcptr i2, mp_size_t n2);
 
+FLINT_DLL void fft_convolution_basic(mp_limb_t ** ii, mp_limb_t ** jj,
+		     slong depth, slong limbs, slong trunc, mp_limb_t ** t1, 
+                            mp_limb_t ** t2, mp_limb_t ** s1, mp_limb_t ** tt);
+	
 FLINT_DLL void fft_convolution(mp_limb_t ** ii, mp_limb_t ** jj, slong depth, 
-                                 slong limbs, slong trunc, mp_limb_t ** t1, 
-                                mp_limb_t ** t2, mp_limb_t ** s1, mp_limb_t ** tt);
+                                    slong limbs, slong trunc, mp_limb_t ** t1, 
+                            mp_limb_t ** t2, mp_limb_t ** s1, mp_limb_t ** tt);
+
+/***** FFT Precaching *****/
+
+FLINT_DLL void fft_precache(mp_limb_t ** jj, slong depth, slong limbs,
+               slong trunc, mp_limb_t ** t1, mp_limb_t ** t2, mp_limb_t ** s1);
+
+FLINT_DLL void fft_convolution_precache(mp_limb_t ** ii, mp_limb_t ** jj,
+               slong depth, slong limbs, slong trunc, mp_limb_t ** t1,
+	                    mp_limb_t ** t2, mp_limb_t ** s1, mp_limb_t ** tt);
 
 #ifdef __cplusplus
 }

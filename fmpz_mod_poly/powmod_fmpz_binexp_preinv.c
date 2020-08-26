@@ -10,7 +10,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #undef ulong
@@ -88,6 +88,13 @@ fmpz_mod_poly_powmod_fmpz_binexp_preinv(fmpz_mod_poly_t res,
         flint_abort();
     }
 
+
+    if (lenf == 1)
+    {
+        fmpz_mod_poly_zero(res);
+        return;
+    }
+
     if (fmpz_sgn(e) < 0)
     {
         flint_printf("Exception (fmpz_mod_poly_powmod_fmpz_binexp_preinv)."
@@ -129,7 +136,7 @@ fmpz_mod_poly_powmod_fmpz_binexp_preinv(fmpz_mod_poly_t res,
         }
     }
 
-    if (lenf == 1 || len == 0)
+    if (len == 0)
     {
         fmpz_mod_poly_zero(res);
         return;

@@ -8,7 +8,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #define ulong ulongxx /* interferes with system includes */
@@ -21,9 +21,9 @@
 
 #include "flint.h"
 #include "ulong_extras.h"
-#include <pthread.h>
 
 #if FLINT_REENTRANT && !HAVE_TLS
+#include <pthread.h>
 
 static pthread_once_t primes_initialised = PTHREAD_ONCE_INIT;
 pthread_mutex_t primes_lock;
@@ -48,7 +48,6 @@ const unsigned int flint_primes_small[] =
 FLINT_TLS_PREFIX mp_limb_t * _flint_primes[FLINT_BITS];
 FLINT_TLS_PREFIX double * _flint_prime_inverses[FLINT_BITS];
 FLINT_TLS_PREFIX int _flint_primes_used = 0;
-#pragma omp threadprivate(_flint_primes, _flint_prime_inverses, _flint_primes_used)
 
 #if FLINT_REENTRANT && !HAVE_TLS
 void n_compute_primes_init()

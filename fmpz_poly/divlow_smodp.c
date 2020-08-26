@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -58,7 +58,7 @@ void fmpz_poly_divlow_smodp(fmpz * res, const fmpz_poly_t f,
    {
       fmpz_mul(res + k, tf->coeffs + i, cinv); 
 
-      fmpz_mods(res + k, res + k, p);
+      fmpz_smod(res + k, res + k, p);
 
       _fmpz_vec_scalar_submul_fmpz(tf->coeffs + i,  g->coeffs + zeroes,
                                 FLINT_MIN(g->length - zeroes, n - k), res + k);

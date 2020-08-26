@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifndef CXX_FMPZXX_H
@@ -327,6 +327,12 @@ struct fmpz_data
         fmpz_set_si(inner, t);
     }
 
+    void init(double d)
+    {
+        fmpz_init(inner);
+        fmpz_set_d(inner, d);
+    }
+
     void init(const char* str)
     {
         fmpz_init(inner);
@@ -424,7 +430,11 @@ FLINT_DEFINE_CBINARY_EXPR_COND2(plus, fmpzxx,
         FMPZXX_COND_S, traits::is_unsigned_integer,
         fmpz_add_ui(to._fmpz(), e1._fmpz(), e2))
 
-FLINT_DEFINE_BINARY_EXPR_COND2(times, fmpzxx, FMPZXX_COND_S, FMPZXX_COND_S,
+FLINT_DEFINE_CBINARY_EXPR_COND2(plus, fmpzxx,
+        FMPZXX_COND_S, traits::is_signed_integer,
+        fmpz_add_si(to._fmpz(), e1._fmpz(), e2))
+
+FLINT_DEFINE_CBINARY_EXPR_COND2(times, fmpzxx, FMPZXX_COND_S, FMPZXX_COND_S,
         fmpz_mul(to._fmpz(), e1._fmpz(), e2._fmpz()))
 
 FLINT_DEFINE_CBINARY_EXPR_COND2(times, fmpzxx,
@@ -441,6 +451,10 @@ FLINT_DEFINE_BINARY_EXPR_COND2(minus, fmpzxx, FMPZXX_COND_S, FMPZXX_COND_S,
 FLINT_DEFINE_BINARY_EXPR_COND2(minus, fmpzxx,
         FMPZXX_COND_S, traits::is_unsigned_integer,
         fmpz_sub_ui(to._fmpz(), e1._fmpz(), e2))
+
+FLINT_DEFINE_BINARY_EXPR_COND2(minus, fmpzxx,
+        FMPZXX_COND_S, traits::is_signed_integer,
+        fmpz_sub_si(to._fmpz(), e1._fmpz(), e2))
 
 FLINT_DEFINE_BINARY_EXPR_COND2(divided_by, fmpzxx, FMPZXX_COND_S, FMPZXX_COND_S,
         fmpz_fdiv_q(to._fmpz(), e1._fmpz(), e2._fmpz()))

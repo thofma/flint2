@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "nmod_mpoly.h"
@@ -449,7 +449,14 @@ int nmod_mpoly_divides_monagan_pearce(nmod_mpoly_t poly1,
     TMP_INIT;
 
     if (poly3->length == 0)
-        flint_throw(FLINT_DIVZERO, "Divide by zero in nmod_mpoly_divides_monagan_pearce");
+    {
+        if (poly2->length == 0 || nmod_mpoly_ctx_modulus(ctx) == 1)
+        {
+            nmod_mpoly_set(poly1, poly2, ctx);
+            return 1;
+        } else
+            flint_throw(FLINT_DIVZERO, "Divide by zero in nmod_mpoly_divides_monagan_pearce");
+    }
 
     if (poly2->length == 0)
     {

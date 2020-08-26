@@ -8,7 +8,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifndef NMOD_MAT_H
@@ -32,6 +32,7 @@
 #include "ulong_extras.h"
 #include "nmod_vec.h"
 #include "fmpz.h"
+#include "thread_support.h"
 
 #ifdef __cplusplus
  extern "C" {
@@ -124,8 +125,7 @@ FLINT_DLL void nmod_mat_zero(nmod_mat_t mat);
 FLINT_DLL int nmod_mat_is_zero(const nmod_mat_t mat);
 
 NMOD_MAT_INLINE
-int
-nmod_mat_is_zero_row(const nmod_mat_t mat, slong i)
+int nmod_mat_is_zero_row(const nmod_mat_t mat, slong i)
 {
     return _nmod_vec_is_zero(mat->rows[i], mat->c);
 }
@@ -172,9 +172,16 @@ void nmod_mat_scalar_mul_fmpz(nmod_mat_t res, const nmod_mat_t M, const fmpz_t c
 
 FLINT_DLL void nmod_mat_mul(nmod_mat_t C, const nmod_mat_t A, const nmod_mat_t B);
 FLINT_DLL void nmod_mat_mul_classical(nmod_mat_t C, const nmod_mat_t A, const nmod_mat_t B);
+FLINT_DLL void
+_nmod_mat_mul_classical_threaded_pool_op(nmod_mat_t D, const nmod_mat_t C,
+		            const nmod_mat_t A, const nmod_mat_t B, int op,
+			      thread_pool_handle * threads, slong num_threads);
+
+FLINT_DLL void nmod_mat_mul_classical_threaded(nmod_mat_t C,
+		                       const nmod_mat_t A, const nmod_mat_t B);
 FLINT_DLL void nmod_mat_mul_strassen(nmod_mat_t C, const nmod_mat_t A, const nmod_mat_t B);
 
-FLINT_DLL void _nmod_mat_mul_classical(nmod_mat_t D, const nmod_mat_t C,
+FLINT_DLL void _nmod_mat_mul_classical_op(nmod_mat_t D, const nmod_mat_t C,
                                 const nmod_mat_t A, const nmod_mat_t B, int op);
 
 FLINT_DLL void nmod_mat_addmul(nmod_mat_t D, const nmod_mat_t C,
@@ -325,7 +332,7 @@ FLINT_DLL slong _nmod_mat_rref_classical(nmod_mat_t A, slong * pivots_nonpivots)
 FLINT_DLL slong nmod_mat_rref_storjohann(nmod_mat_t A);
 FLINT_DLL slong _nmod_mat_rref_storjohann(nmod_mat_t A, slong * pivots_nonpivots);
 
-slong nmod_mat_reduce_row(nmod_mat_t M, slong * P, slong * L, slong m);
+FLINT_DLL slong nmod_mat_reduce_row(nmod_mat_t M, slong * P, slong * L, slong m);
 
 /* Nullspace */
 
@@ -370,6 +377,10 @@ FLINT_DLL void nmod_mat_similarity(nmod_mat_t M, slong r, ulong d);
    range and in Strassen blocks.
  */
 #define NMOD_MAT_OPTIMAL_MODULUS_BITS (FLINT_BITS-5)
+
+/* Inlines *******************************************************************/
+
+FLINT_DLL void nmod_mat_set_entry(nmod_mat_t mat, slong i, slong j, mp_limb_t x);
 
 #ifdef __cplusplus
 }

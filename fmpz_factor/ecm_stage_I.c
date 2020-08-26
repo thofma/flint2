@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -49,8 +49,8 @@ fmpz_factor_ecm_stage_I(mp_ptr f, const mp_limb_t *prime_array, mp_limb_t num,
            condition two -> gcd = n
            if neither is true, factor found */
 
-        if ((((gcdlimbs == 1) && f[0] == ecm_inf->one[0]) || 
-            ((gcdlimbs == ecm_inf->n_size) && mpn_cmp(f, n, ecm_inf->n_size) == 0)) == 0)
+        if (!(gcdlimbs == 1 && f[0] == ecm_inf->one[0]) &&
+            !(gcdlimbs == ecm_inf->n_size && mpn_cmp(f, n, ecm_inf->n_size) == 0))
         {
             /* Found factor in stage I */
             return gcdlimbs;

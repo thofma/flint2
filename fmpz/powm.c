@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -19,12 +19,31 @@ void fmpz_powm(fmpz_t f, const fmpz_t g, const fmpz_t e, const fmpz_t m)
 {
     if (fmpz_sgn(m) <= 0)
     {
-        flint_printf("Exception (fmpz_powm). Modulus is less than 1.\n");
-        flint_abort();
+        flint_throw(FLINT_ERROR, "Exception in fmpz_powm: "
+                                                  "Modulus is less than 1.\n");
     }
     else if (!COEFF_IS_MPZ(*e))  /* e is small */
     {
-        fmpz_powm_ui(f, g, *e, m);
+        if (*e >= 0)
+        {
+            fmpz_powm_ui(f, g, *e, m);
+        }
+        else
+        {
+            fmpz_t g_inv;
+            fmpz_init(g_inv);
+            if (!fmpz_invmod(g_inv, g, m))
+            {
+                fmpz_clear(g_inv);
+                flint_throw(FLINT_ERROR, "Exception in fmpz_powm: "
+                                                 "Base is not invertible.\n");
+            }
+            else
+            {
+                fmpz_powm_ui(f, g_inv, -*e, m);
+                fmpz_clear(g_inv);
+            }
+        }
     }
     else  /* e is large */
     {

@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 *******************************************************************************
@@ -255,7 +255,7 @@ void Fmpz_target::setbit(ulong)
 bool Fmpz_expr::tstbit(ulong) const
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    Comparision
+    Comparison
 
     Relational operators \code{<=}, \code{>}
     etc are overloaded, where \code{e1} and \code{e2} can be any
@@ -1211,7 +1211,7 @@ Fmpz_poly_expr div_root(Fmpz_poly_expr, Fmpz_expr)
 Ltuple<bool, fmpz_polyxx>_expr divides(Fmpz_poly_expr A, Fmpz_poly_expr B)
 
     \code{ltupleref(d, Q) = divides(A, B)} sets \code{d} to \code{true}
-    and \code{Q} to \code{B/A} if \code{A} divides \code{B}, and else sets
+    and \code{Q} to \code{A/B} if \code{B} divides \code{A}, and else sets
     \code{d} to \code{false}. See \code{fmpz_poly_divides}.
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2275,7 +2275,7 @@ Fmpz_poly_mat_expr::binary operation(??) const
 
 Fmpz_poly_mat_expr::three operation(??) const
 
-    The following threeary functions are made available as member functions:
+    The following ternary functions are made available as member functions:
     \code{mullow}, \code{pow_trunc}.
 
 Fmpz_mat_expr Fmpz_poly_mat_expr::operator()(Fmpz_expr) const
@@ -4734,10 +4734,7 @@ Fmpz_vec_expr landau_function_vec(T:is_unsigned_integer)
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 Fmpz_expr dedekind_sum_naive(Fmpz_expr, Fmpz_expr)
-Fmpz_expr dedekind_sum_coprime_large(Fmpz_expr, Fmpz_expr)
-Fmpz_expr dedekind_sum_coprime(Fmpz_expr, Fmpz_expr)
 Fmpz_expr dedekind_sum(Fmpz_expr, Fmpz_expr)
-double dedekind_sum_d(double, double)
 
 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     Number of partitions

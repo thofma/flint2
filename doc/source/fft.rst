@@ -68,7 +68,7 @@ Arithmetic modulo a generalised Fermat number
 
 .. function:: void mpn_addmod_2expp1_1(mp_limb_t * r, mp_size_t limbs, mp_limb_signed_t c)
 
-    Adds the signed limb ``c`` to the generalised fermat number ``r``
+    Adds the signed limb ``c`` to the generalised Fermat number ``r``
     modulo ``B^limbs + 1``. The compiler should be able to inline
     this for the case that there is no overflow from the first limb.
 
@@ -156,32 +156,28 @@ Radix 2 transforms
 
     Input: ``[i0, i1, ..., i(m-1)]``, for `m = 2n` a power of `2`.
 
-    Output: ``[r0, r1, ..., r(m-1)]``\\ `` = FFT[i0, i1, ..., i(m-1)]``.
+    Output: ``[r0, r1, ..., r(m-1)]`` `` = FFT[i0, i1, ..., i(m-1)]``.
 
     Algorithm:
 
-    `\bullet` Recursively compute ``[r0, r2, r4, ...., r(m-2)]``\\
-         ``= FFT[i0+i(m/2), i1+i(m/2+1), ..., i(m/2-1)+i(m-1)]``
-
-    `\bullet` Let ``[t0, t1, ..., t(m/2-1)]``\\
-         ``= [i0-i(m/2), i1-i(m/2+1), ..., i(m/2-1)-i(m-1)]``
-
-    `\bullet` Let ``[u0, u1, ..., u(m/2-1)]``\\
-         ``= [z1^0*t0, z1^1*t1, ..., z1^(m/2-1)*t(m/2-1)]``
-         where ``z1 = exp(2*Pi*I/m)`` corresponds to multiplication
-         by `2^w`.
-
-    `\bullet` Recursively compute ``[r1, r3, ..., r(m-1)]``\\
-         ``= FFT[u0, u1, ..., u(m/2-1)]``
+    | `\bullet` Recursively compute ``[r0, r2, r4, ...., r(m-2)]``
+    |     ``= FFT[i0+i(m/2), i1+i(m/2+1), ..., i(m/2-1)+i(m-1)]``
+    |
+    | `\bullet` Let ``[t0, t1, ..., t(m/2-1)]``
+    |     ``= [i0-i(m/2), i1-i(m/2+1), ..., i(m/2-1)-i(m-1)]``
+    |
+    | `\bullet` Let ``[u0, u1, ..., u(m/2-1)]``
+    |     ``= [z1^0*t0, z1^1*t1, ..., z1^(m/2-1)*t(m/2-1)]``
+    |     where ``z1 = exp(2*Pi*I/m)`` corresponds to multiplication by `2^w`.
+    |
+    | `\bullet` Recursively compute ``[r1, r3, ..., r(m-1)]``
+    |     ``= FFT[u0, u1, ..., u(m/2-1)]``
 
     The parameters are as follows:
 
-    `\bullet` ``2*n`` is the length of the input and output
-         arrays
+    `\bullet` ``2*n`` is the length of the input and output arrays
 
-    `\bullet` `w` is such that `2^w` is an `2n`-th root of unity
-         in the ring `\mathbf{Z}/p\mathbf{Z}` that we are working in,
-         i.e. `p = 2^{wn} + 1` (here `n` is divisible by
+    `\bullet` `w` is such that `2^w` is an `2n`-th root of unity in the ring `\mathbf{Z}/p\mathbf{Z}` that we are working in, i.e. `p = 2^{wn} + 1` (here `n` is divisible by
          ``GMP_LIMB_BITS``)
 
     `\bullet` ``ii`` is the array of inputs (each input is an
@@ -218,17 +214,16 @@ Radix 2 transforms
 
     Algorithm:
 
-    `\bullet` Recursively compute ``[s0, s1, ...., s(m/2-1)]``\\
+    `\bullet` Recursively compute ``[s0, s1, ...., s(m/2-1)]``
          ``= IFFT[i0, i2, ..., i(m-2)]``
 
-    `\bullet` Recursively compute ``[t(m/2), t(m/2+1), ..., t(m-1)]``\\
+    `\bullet` Recursively compute ``[t(m/2), t(m/2+1), ..., t(m-1)]``
          ``= IFFT[i1, i3, ..., i(m-1)]``
 
-    `\bullet` Let ``[r0, r1, ..., r(m/2-1)]``\\
-         ``= [s0+z1^0*t0, s1+z1^1*t1, ..., s(m/2-1)+z1^(m/2-1)*t(m/2-1)]``
-         where ``z1 = exp(-2*Pi*I/m)`` corresponds to division by `2^w`.
+    `\bullet` Let ``[r0, r1, ..., r(m/2-1)]``
+         ``= [s0+z1^0*t0, s1+z1^1*t1, ..., s(m/2-1)+z1^(m/2-1)*t(m/2-1)]`` where ``z1 = exp(-2*Pi*I/m)`` corresponds to division by `2^w`.
 
-    `\bullet` Let ``[r(m/2), r(m/2+1), ..., r(m-1)]``\\
+    `\bullet` Let ``[r(m/2), r(m/2+1), ..., r(m-1)]``
         ``= [s0-z1^0*t0, s1-z1^1*t1, ..., s(m/2-1)-z1^(m/2-1)*t(m/2-1)]``
 
     The parameters are as follows:
@@ -236,15 +231,10 @@ Radix 2 transforms
     `\bullet` ``2*n`` is the length of the input and output
         arrays
 
-    `\bullet` `w` is such that `2^w` is an `2n`-th root of unity
-        in the ring `\mathbf{Z}/p\mathbf{Z}` that we are working in,
-        i.e. `p = 2^{wn} + 1` (here `n` is divisible by
+    `\bullet` `w` is such that `2^w` is an `2n`-th root of unity in the ring `\mathbf{Z}/p\mathbf{Z}` that we are working in, i.e. `p = 2^{wn} + 1` (here `n` is divisible by
         ``GMP_LIMB_BITS``)
 
-    `\bullet` ``ii`` is the array of inputs (each input is an
-        array of limbs of length ``wn/GMP_LIMB_BITS + 1`` (the
-        extra limbs being a "carry limb"). Outputs are written
-        in-place.
+    `\bullet` ``ii`` is the array of inputs (each input is an array of limbs of length ``wn/GMP_LIMB_BITS + 1`` (the extra limbs being a "carry limb"). Outputs are written in-place.
 
     We require `nw` to be at least 64 and the two temporary space pointers
     to point to blocks of size ``n*w + FLINT_BITS`` bits.
@@ -266,7 +256,7 @@ Radix 2 transforms
     are then equal to what they would have been if the inverse transform of
     the right hand side of the input array had been computed with full data
     from the start. The function ``ifft_truncate1`` is then called on the
-    entire right half of the input array with this auxilliary data filled in.
+    entire right half of the input array with this auxiliary data filled in.
     Finally a single layer of the IFFT is completed on all the coefficients
     up to ``trunc`` being careful to note that this involves doubling the
     coefficients from ``trunc - n`` up to ``n``.
@@ -563,3 +553,17 @@ Convolution
     limbs of space and ``tt`` must have ``2*(limbs + 1)`` of free 
     space.
 
+FFT Precaching
+-------------------------------------------------------------------------------
+
+
+.. function:: void fft_precache(mp_limb_t ** jj, slong depth, slong limbs, slong trunc, mp_limb_t ** t1, mp_limb_t ** t2, mp_limb_t ** s1)
+
+    Precompute the FFT of ``jj`` for use with precache functions. The
+    parameters are as for ``fft_convolution``.
+    
+.. function:: void fft_convolution_precache(mp_limb_t ** ii, mp_limb_t ** jj, slong depth, slong limbs, slong trunc, mp_limb_t ** t1, mp_limb_t ** t2, mp_limb_t ** s1, mp_limb_t ** tt)
+
+    As per ``fft_convolution`` except that it is assumed ``fft_precache`` has
+    been called on ``jj`` with the same parameters. This will then run faster
+    than if ``fft_convolution`` had been run with the original ``jj``.

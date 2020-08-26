@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "d_mat.h"
@@ -80,7 +80,7 @@ d_mat_qr(d_mat_t Q, d_mat_t R, const d_mat_t A)
             if (s < t)
             {
                 orig = 0;
-                if (s * D_EPS == 0)
+                if (fabs(s * D_EPS) < 1.0e-308)
                     s = 0;
                 else
                     flag = 1;

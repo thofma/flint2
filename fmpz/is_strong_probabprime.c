@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #define ulong ulongxx /* interferes with system includes */
@@ -35,7 +35,6 @@ int fmpz_is_strong_probabprime(const fmpz_t n, const fmpz_t base)
    fmpz_init(nm1);
    
    fmpz_sub_ui(nm1, n, 1);
-   fmpz_set(t, nm1);
 
    if (fmpz_cmp(base, n) >= 0)
       fmpz_mod(a, base, n);
@@ -49,12 +48,9 @@ int fmpz_is_strong_probabprime(const fmpz_t n, const fmpz_t base)
       slong s = 0;
 
       fmpz_init(y);
+      s = fmpz_val2(nm1);
 
-      while (!fmpz_tstbit(n, s))
-         s++;
-
-      fmpz_tdiv_q_2exp(t, t, s);
-
+      fmpz_tdiv_q_2exp(t, nm1, s);
       fmpz_powm(y, a, t, n);
 
       if (fmpz_is_one(y))

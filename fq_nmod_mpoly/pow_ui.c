@@ -6,12 +6,13 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "fq_nmod_mpoly.h"
 
-void fq_nmod_mpoly_pow_ui(fq_nmod_mpoly_t A, const fq_nmod_mpoly_t B,
+
+int fq_nmod_mpoly_pow_ui(fq_nmod_mpoly_t A, const fq_nmod_mpoly_t B,
                                         ulong k, const fq_nmod_mpoly_ctx_t ctx)
 {
     slong i, exp_bits;
@@ -21,31 +22,31 @@ void fq_nmod_mpoly_pow_ui(fq_nmod_mpoly_t A, const fq_nmod_mpoly_t B,
     if (k == 0)
     {
         fq_nmod_mpoly_set_ui(A, 1, ctx);
-        return;
+        return 1;
     }
 
     if (B->length == 0)
     {
         fq_nmod_mpoly_zero(A, ctx);
-        return;
+        return 1;
     }
 
     if (k == 1)
     {
         fq_nmod_mpoly_set(A, B, ctx);
-        return;
+        return 1;
     }
 
     if (k == 2)
     {
         fq_nmod_mpoly_mul(A, B, B, ctx);
-        return;
+        return 1;
     }
 
     if (B->length != 1)
     {
         fq_nmod_mpoly_pow_rmul(A, B, k, ctx);
-        return;
+        return 1;
     }
 
     TMP_START;
@@ -74,4 +75,6 @@ void fq_nmod_mpoly_pow_ui(fq_nmod_mpoly_t A, const fq_nmod_mpoly_t B,
         fmpz_clear(maxBfields + i);
 
     TMP_END;
+
+    return 1;
 }

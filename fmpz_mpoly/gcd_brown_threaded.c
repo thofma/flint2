@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "fmpz_mpoly.h"
@@ -18,7 +18,9 @@ typedef struct
 {
     volatile int gcd_is_one;
     volatile mp_limb_t p;
+#if HAVE_PTHREAD
     pthread_mutex_t mutex;
+#endif
     fmpz_t gamma;
     const fmpz_mpoly_ctx_struct * ctx;
     fmpz_mpoly_struct * A, * B;
@@ -114,16 +116,22 @@ static void _splitworker(void * varg)
     while (arg->image_count < arg->required_images)
     {
         /* get prime */
+#if HAVE_PTHREAD
         pthread_mutex_lock(&base->mutex);
-        p = base->p;
+#endif
+	p = base->p;
         if (p >= UWORD_MAX_PRIME)
         {
+#if HAVE_PTHREAD
             pthread_mutex_unlock(&base->mutex);
+#endif
             break;
         }
         p = n_nextprime(base->p, 1);
         base->p = p;
+#if HAVE_PTHREAD
         pthread_mutex_unlock(&base->mutex);
+#endif
 
         /* make sure reduction does not kill both lc(A) and lc(B) */
         gammared = fmpz_fdiv_ui(base->gamma, p);
@@ -145,14 +153,14 @@ static void _splitworker(void * varg)
         /* reduce to Fp and calculate an image gcd */
         if (arg->num_handles > 0)
         {
-            thread_pool_wake(global_thread_pool, arg->worker_handles[0],
+            thread_pool_wake(global_thread_pool, arg->worker_handles[0], 0,
                                                        _reduce_Bp_worker, arg);
 
             fmpz_mpoly_interp_reduce_p_mpolyn(arg->Ap, arg->pctx, base->A, ctx);
 
             thread_pool_wait(global_thread_pool, arg->worker_handles[0]);
 
-            success = nmod_mpolyn_gcd_brown_smprime_threaded(
+            success = nmod_mpolyn_gcd_brown_smprime_threaded_pool(
                                   arg->Gp, arg->Abarp, arg->Bbarp,
                    arg->Ap, arg->Bp, ctx->minfo->nvars - 1, arg->pctx, base->I,
                                        arg->worker_handles, arg->num_handles);
@@ -217,11 +225,11 @@ static void _splitworker(void * varg)
         /* crt image gcd */
         if (arg->num_handles > 0)
         {
-            thread_pool_wake(global_thread_pool, arg->worker_handles[0],
+            thread_pool_wake(global_thread_pool, arg->worker_handles[0], 0,
                                                        _join_Abar_worker, arg);
             if (arg->num_handles > 1)
             {
-                thread_pool_wake(global_thread_pool, arg->worker_handles[1],
+                thread_pool_wake(global_thread_pool, arg->worker_handles[1], 0,
                                                        _join_Bbar_worker, arg);
             }
             else
@@ -497,7 +505,9 @@ static slong _fmpz_mpoly_crt(
 typedef struct
 {
     volatile int idx;
+#if HAVE_PTHREAD
     pthread_mutex_t mutex;
+#endif
     const fmpz_mpoly_ctx_struct * ctx;
     fmpz_multi_crt_t CRT;
     fmpz_mpoly_struct ** gptrs, ** abarptrs, ** bbarptrs;
@@ -536,10 +546,14 @@ static void _joinworker(void * varg)
     while (1)
     {
         /* get exponent of either G, Abar, or Bbar to start working on */
+#if HAVE_PTHREAD
         pthread_mutex_lock(&base->mutex);
-        i = base->idx;
+#endif
+	i = base->idx;
         base->idx = i + 1;
+#if HAVE_PTHREAD
         pthread_mutex_unlock(&base->mutex);
+#endif
 
         if (i >= base->chunks_length)
         {
@@ -702,7 +716,7 @@ static slong _divide_master_threads(fmpq * v, slong n, slong m)
 }
 
 /* inputs A and B are modified */
-int fmpz_mpolyl_gcd_brown_threaded(
+int fmpz_mpolyl_gcd_brown_threaded_pool(
     fmpz_mpoly_t G,
     fmpz_mpoly_t Abar,
     fmpz_mpoly_t Bbar,
@@ -795,7 +809,9 @@ int fmpz_mpolyl_gcd_brown_threaded(
     splitbase->p = UWORD(1) << (FLINT_BITS - 2);
     splitbase->I = I;
 
+#if HAVE_PTHREAD
     pthread_mutex_init(&splitbase->mutex, NULL);
+#endif
 
     /* initial bound on target modulus */
     fmpz_mpoly_height(bound, A, ctx);
@@ -861,7 +877,7 @@ compute_split:
 
     for (i = 1; i < num_master_threads; i++)
     {
-        thread_pool_wake(global_thread_pool, splitargs[i].master_handle,
+        thread_pool_wake(global_thread_pool, splitargs[i].master_handle, 0,
                                                  _splitworker, &splitargs[i]);
     }
     _splitworker(&splitargs[0]);
@@ -954,7 +970,9 @@ compute_split:
     joinbase->Abar = Abar;
     joinbase->Bbar = Bbar;
     joinbase->ctx = ctx;
+#if HAVE_PTHREAD
     pthread_mutex_init(&joinbase->mutex, NULL);
+#endif
 
     joinargs = (_njoinworker_arg_struct *) flint_malloc(
                                   num_threads*sizeof(_njoinworker_arg_struct));
@@ -1016,7 +1034,7 @@ compute_split:
     for (i = 0; i + 1 < num_threads; i++)
     {
         thread_pool_wake(global_thread_pool,
-                                    handles[i], _joinworker, joinargs + i);
+                                 handles[i], 0, _joinworker, joinargs + i);
     }
     _joinworker(joinargs + num_threads - 1);
     for (i = 0; i + 1 < num_threads; i++)
@@ -1065,7 +1083,7 @@ compute_split:
     for (i = 0; i + 1 < num_threads; i++)
     {
         thread_pool_wake(global_thread_pool,
-                               handles[i], _finaljoinworker, joinargs + i);
+                            handles[i], 0, _finaljoinworker, joinargs + i);
     }
     _finaljoinworker(joinargs + num_threads - 1);
     for (i = 0; i + 1 < num_threads; i++)
@@ -1077,8 +1095,10 @@ compute_split:
     FLINT_ASSERT(fmpz_mpoly_is_canonical(Abar, ctx));
     FLINT_ASSERT(fmpz_mpoly_is_canonical(Bbar, ctx));
 
+#if HAVE_PTHREAD
     pthread_mutex_destroy(&joinbase->mutex);
-
+#endif
+    
     /* free join data */
     fmpz_multi_crt_clear(joinbase->CRT);
     for (i = 0; i < joinbase->chunks_length; i++)
@@ -1132,7 +1152,9 @@ successful_put_content:
 
 cleanup_split:
 
+#if HAVE_PTHREAD
     pthread_mutex_destroy(&splitbase->mutex);
+#endif
     fmpz_clear(splitbase->gamma);
 
     for (i = 0; i < num_threads; i++)
@@ -1192,7 +1214,7 @@ static void _worker_convertu(void * varg)
 {
     _convertl_arg_struct * arg = (_convertl_arg_struct *) varg;
 
-    fmpz_mpoly_to_mpoly_perm_deflate(arg->Pl, arg->lctx, arg->P, arg->ctx,
+    fmpz_mpoly_to_mpoly_perm_deflate_threaded_pool(arg->Pl, arg->lctx, arg->P, arg->ctx,
                                          arg->perm, arg->shift, arg->stride,
                                                arg->handles, arg->num_handles);
 }
@@ -1201,8 +1223,7 @@ int fmpz_mpoly_gcd_brown_threaded(
     fmpz_mpoly_t G,
     const fmpz_mpoly_t A,
     const fmpz_mpoly_t B,
-    const fmpz_mpoly_ctx_t ctx,
-    slong thread_limit)
+    const fmpz_mpoly_ctx_t ctx)
 {
     int success;
     slong * perm;
@@ -1213,6 +1234,7 @@ int fmpz_mpoly_gcd_brown_threaded(
     fmpz_mpoly_t Al, Bl, Gl, Abarl, Bbarl;
     thread_pool_handle * handles;
     slong num_handles;
+    slong thread_limit = FLINT_MIN(A->length, B->length)/16;
 
     if (fmpz_mpoly_is_zero(A, ctx))
     {
@@ -1288,20 +1310,7 @@ int fmpz_mpoly_gcd_brown_threaded(
     fmpz_mpoly_init3(Abarl, 0, ABbits, lctx);
     fmpz_mpoly_init3(Bbarl, 0, ABbits, lctx);
 
-    handles = NULL;
-    num_handles = 0;
-    if (global_thread_pool_initialized)
-    {
-        slong max_num_handles = thread_pool_get_size(global_thread_pool);
-        max_num_handles = FLINT_MIN(thread_limit - 1, max_num_handles);
-        if (max_num_handles > 0)
-        {
-            handles = (thread_pool_handle *) flint_malloc(
-                               max_num_handles*sizeof(thread_pool_handle));
-            num_handles = thread_pool_request(global_thread_pool,
-                                                 handles, max_num_handles);
-        }
-    }
+    num_handles = flint_request_threads(&handles, thread_limit);
 
     /* convert inputs */
     if (num_handles > 0)
@@ -1322,32 +1331,26 @@ int fmpz_mpoly_gcd_brown_threaded(
         arg->handles = handles + (m + 1);
         arg->num_handles = num_handles - (m + 1);
 
-        thread_pool_wake(global_thread_pool, handles[m], _worker_convertu, arg);
+        thread_pool_wake(global_thread_pool, handles[m], 0, _worker_convertu, arg);
 
-        fmpz_mpoly_to_mpoly_perm_deflate(Al, lctx, A, ctx,
+        fmpz_mpoly_to_mpoly_perm_deflate_threaded_pool(Al, lctx, A, ctx,
                                          perm, shift, stride, handles + 0, m);
 
         thread_pool_wait(global_thread_pool, handles[m]);
     }
     else
     {
-        fmpz_mpoly_to_mpoly_perm_deflate(Al, lctx, A, ctx,
+        fmpz_mpoly_to_mpoly_perm_deflate_threaded_pool(Al, lctx, A, ctx,
                                                  perm, shift, stride, NULL, 0);
-        fmpz_mpoly_to_mpoly_perm_deflate(Bl, lctx, B, ctx,
+        fmpz_mpoly_to_mpoly_perm_deflate_threaded_pool(Bl, lctx, B, ctx,
                                                  perm, shift, stride, NULL, 0);
     }
 
     /* calculate gcd */
-    success = fmpz_mpolyl_gcd_brown_threaded(Gl, Abarl, Bbarl, Al, Bl,
+    success = fmpz_mpolyl_gcd_brown_threaded_pool(Gl, Abarl, Bbarl, Al, Bl,
                                              lctx, NULL, handles, num_handles);
 
-    for (i = 0; i < num_handles; i++)
-    {
-        thread_pool_give_back(global_thread_pool, handles[i]);
-    }
-
-    if (handles)
-        flint_free(handles);
+    flint_give_back_threads(handles, num_handles);
 
     if (success)
     {

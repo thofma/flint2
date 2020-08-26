@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <math.h>
@@ -51,7 +51,7 @@ void nmod_poly_factor_kaltofen_shoup(nmod_poly_factor_t res,
         if ((flint_get_num_threads() > 1) &&
             ((sq_free->p + i)->length > (1024*flint_get_num_threads())/4))
             nmod_poly_factor_distinct_deg_threaded(dist_deg, sq_free->p + i,
-                                                   &degs);
+                                                                        &degs);
         else
             nmod_poly_factor_distinct_deg(dist_deg, sq_free->p + i, &degs);
 

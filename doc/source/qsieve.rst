@@ -29,7 +29,7 @@
     work therefore we randomly generate 2 or 3-subset of all the factor base prime
     as the factor of `A _0`.
     Otherwise, if we have to select `s` factor for `A _0`, we generate `s - 1`-
-    subset from odd indices of the possble range of factor and then search last 
+    subset from odd indices of the possible range of factor and then search last 
     factor using binary search from the even indices of possible range of factor
     such that value of `A _0` is close to it's optimal value.
 
@@ -64,9 +64,9 @@
 
 .. function:: void qsieve_do_sieving(qs_t qs_inf, unsigned char * sieve)
 
-    First initialize the sieve array to zero, then for each `p \in factor base`, add
-    `log_2(p)` to the locations `soln1 _p + i * p` and `soln2 _p + i * p` for 
-    `i = 0, 1, 2,\dots`, where `soln1 _p` and `soln2 _p` are the sieve offsets calculated
+    First initialize the sieve array to zero, then for each `p \in` ``factor base``, add
+    `\log_2(p)` to the locations `\operatorname{soln1} _p + i * p` and `\operatorname{soln2} _p + i * p` for 
+    `i = 0, 1, 2,\dots`, where `\operatorname{soln1} _p` and `\operatorname{soln2} _p` are the sieve offsets calculated
     for `p`.
 
 .. function:: void qsieve_do_sieving2(qs_t qs_inf)
@@ -101,7 +101,7 @@
 
 .. function:: hash_t * qsieve_get_table_entry(qs_t qs_inf, mp_limb_t prime)
 
-    Retrun the pointer to the location of 'prime' is hash table if it exist, else
+    Return the pointer to the location of 'prime' is hash table if it exist, else
     create and entry for it in hash table and return pointer to that.
 
 .. function:: void qsieve_add_to_hashtable(qs_t qs_inf, mp_limb_t prime)
@@ -127,7 +127,7 @@
 
     Remove duplicate from given list of relations by sorting relations in the list.
 
-.. function:: void qsieve_insert_relation2(qs_t qs_inf, relation_t * rel_list, slong num_relations);
+.. function:: void qsieve_insert_relation2(qs_t qs_inf, relation_t * rel_list, slong num_relations)
 
     Given a list of relations, insert each relation from the list into the matrix for
     further processing. 
@@ -144,3 +144,5 @@
     prime and not a perfect power. There is no guarantee that the factors found will
     be prime, or distinct.
 
+
+ 

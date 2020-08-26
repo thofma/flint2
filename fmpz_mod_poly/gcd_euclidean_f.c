@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -60,21 +60,21 @@ slong _fmpz_mod_poly_gcd_euclidean_f(fmpz_t f, fmpz *G,
         {
             fmpz_t inv;
 			
-			T  = R3;
+            T  = R3;
             R3 = R1;
             R1 = T;
             _fmpz_vec_set(R2, B, lenB);
             lenR2 = lenB;
 
-			fmpz_init(inv);
+            fmpz_init(inv);
 			
             do
             {
                 fmpz_gcdinv(f, inv, R3 + (lenR3 - 1), p);
                 if (!fmpz_is_one(f))					
-					goto cleanup;
+                    goto cleanup;
 				
-				_fmpz_mod_poly_divrem_basecase(Q, R2, R2, lenR2, R3, lenR3, inv, p);
+                _fmpz_mod_poly_divrem_basecase(Q, R2, R2, lenR2, R3, lenR3, inv, p);
                 
                 lenR2 = lenR3 - 1;
                 FMPZ_VEC_NORM(R2, lenR2);
@@ -86,12 +86,13 @@ slong _fmpz_mod_poly_gcd_euclidean_f(fmpz_t f, fmpz *G,
             lenG = lenR2;
 
 cleanup:			
-			fmpz_clear(inv);
+            fmpz_clear(inv);
         }
 
       exit:
         _fmpz_vec_clear(W, lenW);
     }
+
     return lenG;
 }
 

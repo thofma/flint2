@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2007 David Howden
-    Copyright (C) 2007, 2008, 2009, 2010 William Hart
+    Copyright (C) 2007, 2008, 2009, 2010, 2020 William Hart
     Copyright (C) 2008 Richard Howell-Peak
     Copyright (C) 2011 Fredrik Johansson
     Copyright (C) 2012 Lina Kulakova
@@ -11,33 +11,35 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
 #include "fmpz_mod_poly.h"
 #include "ulong_extras.h"
 #include "flint.h"
+#include "thread_support.h"
 
 #define MAX_DEG 7
 
 int main(void)
 {
+#if HAVE_PTHREAD && (HAVE_TLS || FLINT_REENTRANT)
     int iter;
+#endif
     FLINT_TEST_INIT(state);
 
     flint_printf("factor_distinct_deg_threaded....");
     fflush(stdout);
 
 #if HAVE_PTHREAD && (HAVE_TLS || FLINT_REENTRANT)
-
     for (iter = 0; iter < 20 * flint_test_multiplier(); iter++)
     {
         fmpz_mod_poly_t poly1, poly, q, r, product;
         fmpz_mod_poly_factor_t res;
         fmpz_t modulus;
         slong i, length, num;
-        slong *degs;
+        slong * degs;
         slong num_of_deg[MAX_DEG + 1];
 
         for (i = 0; i < MAX_DEG + 1; i++)
@@ -143,12 +145,10 @@ int main(void)
     flint_printf("PASS\n");
     return 0;
 #else
-
    FLINT_TEST_CLEANUP(state);
 
    flint_printf("SKIPPED\n");
    return 0;
-
 #endif
 
 }

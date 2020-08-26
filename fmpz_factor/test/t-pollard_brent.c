@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -69,7 +69,7 @@ int main(void)
         }
     }
 
-    if (fails > flint_test_multiplier())
+    if (fails > 2*flint_test_multiplier())
     {
         printf("FAIL : Pollard Rho failed too many times (%d times)\n", fails);
         abort();

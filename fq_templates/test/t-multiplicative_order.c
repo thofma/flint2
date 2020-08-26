@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifdef T
@@ -71,24 +71,24 @@ main(void)
         fmpz_init(pm1);
         
         TEMPLATE(T, gen)(X, ctx);
-        if (!TEMPLATE(T, is_primitive)(X, ctx))
-            continue;
-
-        fmpz_sub_ui(pm1, TEMPLATE(T, ctx_prime)(ctx), 1);
-        TEMPLATE(T, pow)(a, X, pm1, ctx);
-        result = TEMPLATE(T, multiplicative_order)(ord, a, ctx);
-        fmpz_mul(ord, ord, pm1);
-
-        TEMPLATE(T, ctx_order)(size, ctx);
-        fmpz_sub(size, size, ord);
-
-        if (result && !fmpz_is_one(size))
+        if (TEMPLATE(T, is_primitive)(X, ctx))
         {
-            flint_printf("FAIL:\n\n");
-            flint_printf("a = "), TEMPLATE(T, print_pretty)(a, ctx), flint_printf("\n");
-            flint_printf("ord = "), fmpz_print(ord), flint_printf("\n");
-            TEMPLATE(T, ctx_print)(ctx);
-            abort();
+            fmpz_sub_ui(pm1, TEMPLATE(T, ctx_prime)(ctx), 1);
+            TEMPLATE(T, pow)(a, X, pm1, ctx);
+            result = TEMPLATE(T, multiplicative_order)(ord, a, ctx);
+            fmpz_mul(ord, ord, pm1);
+
+            TEMPLATE(T, ctx_order)(size, ctx);
+            fmpz_sub(size, size, ord);
+
+            if (result && !fmpz_is_one(size))
+            {
+                flint_printf("FAIL:\n\n");
+                flint_printf("a = "), TEMPLATE(T, print_pretty)(a, ctx), flint_printf("\n");
+                flint_printf("ord = "), fmpz_print(ord), flint_printf("\n");
+                TEMPLATE(T, ctx_print)(ctx);
+                abort();
+            }
         }
 
         fmpz_clear(pm1);

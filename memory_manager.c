@@ -9,7 +9,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -86,7 +86,7 @@ void * _flint_malloc(size_t size)
    return ptr;
 }
 
-void * flint_malloc(size_t size)
+FLINT_WARN_UNUSED void * flint_malloc(size_t size)
 {
    void * ptr = (*__flint_allocate_func)(size);
 
@@ -110,7 +110,7 @@ void * _flint_realloc(void * ptr, size_t size)
 }
 
 
-void * flint_realloc(void * ptr, size_t size)
+FLINT_WARN_UNUSED void * flint_realloc(void * ptr, size_t size)
 {
     void * ptr2;
   
@@ -138,7 +138,7 @@ void * _flint_calloc(size_t num, size_t size)
     return ptr;
 }
 
-void * flint_calloc(size_t num, size_t size)
+FLINT_WARN_UNUSED void * flint_calloc(size_t num, size_t size)
 {
    void * ptr;
 
@@ -166,8 +166,6 @@ void flint_free(void * ptr)
 FLINT_TLS_PREFIX size_t flint_num_cleanup_functions = 0;
 
 FLINT_TLS_PREFIX flint_cleanup_function_t * flint_cleanup_functions = NULL;
-
-#pragma omp threadprivate(flint_num_cleanup_functions, flint_cleanup_functions)
 
 #if FLINT_REENTRANT && !HAVE_TLS
 void register_init()
@@ -197,7 +195,7 @@ void flint_register_cleanup_function(flint_cleanup_function_t cleanup_function)
 
 void _fmpz_cleanup();
 
-void flint_cleanup()
+void _flint_cleanup()
 {
     size_t i;
 
@@ -221,6 +219,13 @@ void flint_cleanup()
 
 }
 
+void flint_cleanup()
+{
+#if !FLINT_REENTRANT || HAVE_TLS
+   _flint_cleanup();
+#endif
+}
+
 void flint_cleanup_master()
 {
     if (global_thread_pool_initialized)
@@ -228,5 +233,5 @@ void flint_cleanup_master()
         thread_pool_clear(global_thread_pool);
         global_thread_pool_initialized = 0;
     }
-    flint_cleanup();
+    _flint_cleanup();
 }

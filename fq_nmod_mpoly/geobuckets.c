@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "fq_nmod_mpoly.h"
@@ -217,7 +217,8 @@ void fq_nmod_mpoly_geobucket_pow_ui(fq_nmod_mpoly_geobucket_t A,
     fq_nmod_mpoly_init(a, ctx);
 
     fq_nmod_mpoly_geobucket_empty(a, A, ctx);
-    fq_nmod_mpoly_pow_ui(a, a, k, ctx);
+    if (!fq_nmod_mpoly_pow_ui(a, a, k, ctx))
+        flint_throw(FLINT_ERROR, "fq_nmod_mpoly_pow_ui failed");
     fq_nmod_mpoly_geobucket_set(A, a, ctx);
 
     fq_nmod_mpoly_clear(a, ctx);
@@ -230,7 +231,9 @@ void fq_nmod_mpoly_geobucket_pow_fmpz_inplace(fq_nmod_mpoly_geobucket_t A,
     fq_nmod_mpoly_init(a, ctx);
 
     fq_nmod_mpoly_geobucket_empty(a, A, ctx);
-    fq_nmod_mpoly_pow_fmpz(a, a, k, ctx);
+    if (!fq_nmod_mpoly_pow_fmpz(a, a, k, ctx))
+        flint_throw(FLINT_ERROR, "fq_nmod_mpoly_pow_fmpz failed");
+
     fq_nmod_mpoly_geobucket_set(A, a, ctx);
 
     fq_nmod_mpoly_clear(a, ctx);

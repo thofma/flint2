@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "qsieve.h"
@@ -22,7 +22,7 @@ void qsieve_linalg_clear(qs_t qs_inf)
 
     if (qs_inf->matrix != NULL)
     {
-        for (i = 0; i < qs_inf->buffer_size + qs_inf->num_unmerged; i++)
+        for (i = 0; i < qs_inf->buffer_size; i++)
         {
             la_col_t * col = qs_inf->matrix + i;
 

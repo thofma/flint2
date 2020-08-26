@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifndef PADIC_H
@@ -265,7 +265,7 @@ PADIC_INLINE int padic_equal(const padic_t op1, const padic_t op2)
 
 /* Arithmetic operations *****************************************************/
 
-slong * _padic_lifts_exps(slong *n, slong N);
+FLINT_DLL slong * _padic_lifts_exps(slong *n, slong N);
 
 FLINT_DLL void _padic_lifts_pows(fmpz *pow, const slong *a, slong n, const fmpz_t p);
 

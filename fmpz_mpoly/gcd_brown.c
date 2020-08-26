@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "fmpz_mpoly.h"
@@ -314,7 +314,7 @@ int fmpz_mpoly_gcd_brown(
     slong * perm;
     ulong * shift, * stride;
     slong i;
-    flint_bitcnt_t new_bits;
+    flint_bitcnt_t wbits;
     fmpz_mpoly_ctx_t lctx;
     fmpz_mpoly_t Al, Bl, Gl, Abarl, Bbarl;
 
@@ -383,28 +383,30 @@ int fmpz_mpoly_gcd_brown(
         goto cleanup1;
     }
 
-    new_bits = FLINT_MAX(A->bits, B->bits);
+    wbits = FLINT_MAX(A->bits, B->bits);
 
     fmpz_mpoly_ctx_init(lctx, ctx->minfo->nvars, ORD_LEX);
-    fmpz_mpoly_init3(Al, 0, new_bits, lctx);
-    fmpz_mpoly_init3(Bl, 0, new_bits, lctx);
-    fmpz_mpoly_init3(Gl, 0, new_bits, lctx);
-    fmpz_mpoly_init3(Abarl, 0, new_bits, lctx);
-    fmpz_mpoly_init3(Bbarl, 0, new_bits, lctx);
+    fmpz_mpoly_init3(Al, 0, wbits, lctx);
+    fmpz_mpoly_init3(Bl, 0, wbits, lctx);
+    fmpz_mpoly_init3(Gl, 0, wbits, lctx);
+    fmpz_mpoly_init3(Abarl, 0, wbits, lctx);
+    fmpz_mpoly_init3(Bbarl, 0, wbits, lctx);
 
-    fmpz_mpoly_to_mpoly_perm_deflate(Al, lctx, A, ctx,
+    fmpz_mpoly_to_mpoly_perm_deflate_threaded_pool(Al, lctx, A, ctx,
                                                  perm, shift, stride, NULL, 0);
-    fmpz_mpoly_to_mpoly_perm_deflate(Bl, lctx, B, ctx,
+    fmpz_mpoly_to_mpoly_perm_deflate_threaded_pool(Bl, lctx, B, ctx,
                                                  perm, shift, stride, NULL, 0);
 
     success = fmpz_mpolyl_gcd_brown(Gl, Abarl, Bbarl, Al, Bl, lctx, NULL);
-    if (success)
-    {
-        fmpz_mpoly_from_mpoly_perm_inflate(G, new_bits, ctx, Gl, lctx,
-                                                          perm, shift, stride);
-        if (fmpz_sgn(G->coeffs + 0) < 0)
-            fmpz_mpoly_neg(G, G, ctx);
-    }
+    if (!success)
+        goto cleanup;
+
+    fmpz_mpoly_from_mpoly_perm_inflate(G, FLINT_MIN(A->bits, B->bits), ctx,
+                                                Gl, lctx, perm, shift, stride);
+    if (fmpz_sgn(G->coeffs + 0) < 0)
+        fmpz_mpoly_neg(G, G, ctx);
+
+cleanup:
 
     fmpz_mpoly_clear(Al, lctx);
     fmpz_mpoly_clear(Bl, lctx);

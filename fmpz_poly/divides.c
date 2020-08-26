@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -18,7 +18,40 @@
 int _fmpz_poly_divides(fmpz * q, const fmpz * a, 
                        slong len1, const fmpz * b, slong len2)
 {
-    fmpz * r = _fmpz_vec_init(len1);
+    fmpz * r;
+
+    FLINT_ASSERT(len1 >= len2);
+    FLINT_ASSERT(len2 > 0);
+
+    if (!fmpz_divisible(a + 0, b + 0))
+        return 0;
+
+    /* heuristic test: see if polys evaluated at 1 divide */
+    if (len1 > 1)
+    {
+        slong i;
+        fmpz_t asum, bsum;
+        int divisible = 0;
+
+	fmpz_init(asum);
+	fmpz_init(bsum);
+
+	for (i = 0; i < len1; i++)
+           fmpz_add(asum, asum, a + i);
+
+	for (i = 0; i < len2; i++)
+           fmpz_add(bsum, bsum, b + i);
+
+	divisible = fmpz_divisible(asum, bsum);
+
+	fmpz_clear(asum);
+	fmpz_clear(bsum);
+
+	if (!divisible)
+           return 0;
+    }
+
+    r = _fmpz_vec_init(len1);
 
     if (!_fmpz_poly_divrem(q, r, a, len1, b, len2, 1))
     {

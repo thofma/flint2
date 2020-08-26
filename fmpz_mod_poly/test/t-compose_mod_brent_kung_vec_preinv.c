@@ -8,7 +8,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #undef ulong
@@ -62,17 +62,19 @@ main(void)
         res = pow + l;
 
         fmpz_mod_poly_rem(b, b, a);
-        for (j = 0; j < l - 1; j++)
+        for (j = 0; j < l; j++)
         {
             fmpz_mod_poly_init(pow + j, p);
             fmpz_mod_poly_randtest(pow + j, state, n_randint(state, 20) + 1);
             fmpz_mod_poly_rem(pow + j, pow + j, a);
         }
 
-        fmpz_mod_poly_init(pow + l - 1, p);
-        fmpz_mod_poly_set(pow + l - 1, b);
+        for (j = 0; j < k; j++)
+        {
+            fmpz_mod_poly_init(res + j, p);
+        }
 
-        fmpz_mod_poly_compose_mod_brent_kung_vec_preinv(res, pow, l, k, a, ainv);
+        fmpz_mod_poly_compose_mod_brent_kung_vec_preinv(res, pow, l, k, b, a, ainv);
 
         for (j = 0; j < k; j++)
         {

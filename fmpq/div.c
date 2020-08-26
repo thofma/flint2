@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "fmpq.h"
@@ -17,6 +17,15 @@ _fmpq_div(fmpz_t rnum, fmpz_t rden, const fmpz_t op1num, const fmpz_t op1den,
                                     const fmpz_t op2num, const fmpz_t op2den)
 {
     fmpz_t t, u;
+
+    if (!COEFF_IS_MPZ(*op1num) && !COEFF_IS_MPZ(*op1den) && !COEFF_IS_MPZ(*op2num) && !COEFF_IS_MPZ(*op2den))
+    {
+        if (*op2num > 0)
+            _fmpq_mul_small(rnum, rden, *op1num, *op1den, *op2den, *op2num);
+        else
+            _fmpq_mul_small(rnum, rden, *op1num, *op1den, -(*op2den), -(*op2num));
+        return;
+    }
 
     fmpz_init(t);
     fmpz_init(u);

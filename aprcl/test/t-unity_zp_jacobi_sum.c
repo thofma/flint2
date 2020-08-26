@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -51,7 +51,7 @@ int main(void)
         while (fmpz_equal_ui(n, 0) != 0)
             fmpz_randtest_unsigned(n, state, 200);
 
-        table = f_table(q);
+        table = aprcl_f_table(q);
 
         unity_zp_init(f, p, k, n);
         unity_zp_init(g, p, k, n);
@@ -103,7 +103,7 @@ int main(void)
         while (fmpz_equal_ui(n, 0) != 0)
             fmpz_randtest_unsigned(n, state, 200);
 
-        table = f_table(q);
+        table = aprcl_f_table(q);
 
         unity_zp_init(f, p, k, n);
         unity_zp_init(g, p, k, n);
@@ -157,7 +157,7 @@ int main(void)
         while (fmpz_equal_ui(n, 0) != 0)
             fmpz_randtest_unsigned(n, state, 200);
 
-        table = f_table(q);
+        table = aprcl_f_table(q);
 
         unity_zp_init(f, p, k, n);
         unity_zp_init(g, p, k, n);

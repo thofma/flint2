@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <string.h>
@@ -340,7 +340,9 @@ slong _nmod_mpoly_mul_heap_part(mp_limb_t ** A_coeff, ulong ** A_exp, slong * A_
 typedef struct
 {
     volatile int idx;
+#if HAVE_PTHREAD
     pthread_mutex_t mutex;
+#endif
     slong nthreads;
     slong ndivs;
     const nmod_mpoly_ctx_struct * ctx;
@@ -380,8 +382,10 @@ typedef struct
     slong time;
     _base_struct * base;
     _div_struct * divs;
+#if HAVE_PTHREAD
     pthread_mutex_t mutex;
     pthread_cond_t cond;
+#endif
     slong * t1, * t2, * t3, * t4;
     ulong * exp;
 }
@@ -445,10 +449,14 @@ static void _nmod_mpoly_mul_heap_threaded_worker(void * arg_ptr)
     /* get index to start working on */
     if (arg->idx + 1 < base->nthreads)
     {
+#if HAVE_PTHREAD
         pthread_mutex_lock(&base->mutex);
-        i = base->idx - 1;
+#endif
+	i = base->idx - 1;
         base->idx = i;
+#if HAVE_PTHREAD
         pthread_mutex_unlock(&base->mutex);
+#endif
     }
     else
     {
@@ -532,10 +540,14 @@ static void _nmod_mpoly_mul_heap_threaded_worker(void * arg_ptr)
         }
 
         /* get next index to work on */
+#if HAVE_PTHREAD
         pthread_mutex_lock(&base->mutex);
-        i = base->idx - 1;
+#endif
+	i = base->idx - 1;
         base->idx = i;
+#if HAVE_PTHREAD
         pthread_mutex_unlock(&base->mutex);
+#endif
     }
 
     /* clean up */
@@ -658,13 +670,15 @@ void _nmod_mpoly_mul_heap_threaded(
     }
 
     /* compute each chunk in parallel */
+#if HAVE_PTHREAD
     pthread_mutex_init(&base->mutex, NULL);
+#endif
     for (i = 0; i < num_handles; i++)
     {
         args[i].idx = i;
         args[i].base = base;
         args[i].divs = divs;
-        thread_pool_wake(global_thread_pool, handles[i],
+        thread_pool_wake(global_thread_pool, handles[i], 0,
                                _nmod_mpoly_mul_heap_threaded_worker, &args[i]);
     }
     i = num_handles;
@@ -700,7 +714,7 @@ void _nmod_mpoly_mul_heap_threaded(
     /* join answers */
     for (i = 0; i < num_handles; i++)
     {
-        thread_pool_wake(global_thread_pool, handles[i], _join_worker, &args[i]);
+        thread_pool_wake(global_thread_pool, handles[i], 0, _join_worker, &args[i]);
     }
     _join_worker(&args[num_handles]);
 
@@ -709,7 +723,9 @@ void _nmod_mpoly_mul_heap_threaded(
         thread_pool_wait(global_thread_pool, handles[i]);
     }
 
+#if HAVE_PTHREAD
     pthread_mutex_destroy(&base->mutex);
+#endif
 
     flint_free(args);
     flint_free(divs);
@@ -722,7 +738,7 @@ void _nmod_mpoly_mul_heap_threaded(
 
 
 /* maxBfields gets clobbered */
-void _nmod_mpoly_mul_heap_threaded_maxfields(
+void _nmod_mpoly_mul_heap_threaded_pool_maxfields(
     nmod_mpoly_t A,
     const nmod_mpoly_t B, fmpz * maxBfields,
     const nmod_mpoly_t C, fmpz * maxCfields,
@@ -830,13 +846,13 @@ void nmod_mpoly_mul_heap_threaded(
     nmod_mpoly_t A,
     const nmod_mpoly_t B,
     const nmod_mpoly_t C,
-    const nmod_mpoly_ctx_t ctx,
-    slong thread_limit)
+    const nmod_mpoly_ctx_t ctx)
 {
     slong i;
     fmpz * maxBfields, * maxCfields;
     thread_pool_handle * handles;
     slong num_handles;
+    slong thread_limit = FLINT_MIN(B->length, C->length)/16;
     TMP_INIT;
 
     if (B->length == 0 || C->length == 0)
@@ -857,33 +873,12 @@ void nmod_mpoly_mul_heap_threaded(
     mpoly_max_fields_fmpz(maxBfields, B->exps, B->length, B->bits, ctx->minfo);
     mpoly_max_fields_fmpz(maxCfields, C->exps, C->length, C->bits, ctx->minfo);
 
-    handles = NULL;
-    num_handles = 0;
-    if (global_thread_pool_initialized)
-    {
-        slong max_num_handles;
-        max_num_handles = thread_pool_get_size(global_thread_pool);
-        max_num_handles = FLINT_MIN(thread_limit - 1, max_num_handles);
-        if (max_num_handles > 0)
-        {
-            handles = (thread_pool_handle *) flint_malloc(
-                                   max_num_handles*sizeof(thread_pool_handle));
-            num_handles = thread_pool_request(global_thread_pool,
-                                                     handles, max_num_handles);
-        }
-    }
+    num_handles = flint_request_threads(&handles, thread_limit);
 
-    _nmod_mpoly_mul_heap_threaded_maxfields(A, B, maxBfields, C, maxCfields,
+    _nmod_mpoly_mul_heap_threaded_pool_maxfields(A, B, maxBfields, C, maxCfields,
                                                     ctx, handles, num_handles);
 
-    for (i = 0; i < num_handles; i++)
-    {
-        thread_pool_give_back(global_thread_pool, handles[i]);
-    }
-    if (handles)
-    {
-        flint_free(handles);
-    }
+    flint_give_back_threads(handles, num_handles);
 
     for (i = 0; i < ctx->minfo->nfields; i++)
     {

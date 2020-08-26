@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "thread_pool.h"
@@ -287,7 +287,9 @@ typedef divides_heap_chunk_struct divides_heap_chunk_t[1];
 */
 typedef struct
 {
+#if HAVE_PTHREAD
     pthread_mutex_t mutex;
+#endif
     divides_heap_chunk_struct * head;
     divides_heap_chunk_struct * tail;
     divides_heap_chunk_struct * volatile cur;
@@ -1695,20 +1697,30 @@ static void worker_loop(void * varg)
         }
         while (L != NULL)
         {
+#if HAVE_PTHREAD
             pthread_mutex_lock(&H->mutex);
+#endif
             if (L->lock != -1)
             {
                 L->lock = -1;
+#if HAVE_PTHREAD
                 pthread_mutex_unlock(&H->mutex);
+#endif
                 trychunk(W, L);
+#if HAVE_PTHREAD
                 pthread_mutex_lock(&H->mutex);
+#endif
                 L->lock = 0;
+#if HAVE_PTHREAD
                 pthread_mutex_unlock(&H->mutex);
+#endif
                 break;
             }
             else
             {
+#if HAVE_PTHREAD
                 pthread_mutex_unlock(&H->mutex);
+#endif
             }
 
             L = L->next;
@@ -1723,7 +1735,7 @@ static void worker_loop(void * varg)
 }
 
 /* return 1 if quotient is exact */
-int nmod_mpolyn_divides_threaded(
+int nmod_mpolyn_divides_threaded_pool(
     nmod_mpolyn_t Q,
     const nmod_mpolyn_t A,
     const nmod_mpolyn_t B,
@@ -1805,7 +1817,8 @@ int nmod_mpolyn_divides_threaded(
     for (i = 0; i + 1 < S->length; i++)
     {
         divides_heap_chunk_struct * L;
-        L = (divides_heap_chunk_struct *) malloc(sizeof(divides_heap_chunk_struct));
+        L = (divides_heap_chunk_struct *) flint_malloc(
+                                            sizeof(divides_heap_chunk_struct));
         L->ma = 0;
         L->mq = 0;
         L->emax = S->exps + N*i;
@@ -1861,7 +1874,9 @@ int nmod_mpolyn_divides_threaded(
 
     /* start the workers */
 
+#if HAVE_PTHREAD
     pthread_mutex_init(&H->mutex, NULL);
+#endif
 
     worker_args = (worker_arg_struct *) flint_malloc((num_handles + 1)
                                                         *sizeof(worker_arg_t));
@@ -1869,7 +1884,7 @@ int nmod_mpolyn_divides_threaded(
     for (i = 0; i < num_handles; i++)
     {
         (worker_args + i)->H = H;
-        thread_pool_wake(global_thread_pool, handles[i],
+        thread_pool_wake(global_thread_pool, handles[i], 0,
                                                  worker_loop, worker_args + i);
     }
     (worker_args + num_handles)->H = H;
@@ -1881,7 +1896,9 @@ int nmod_mpolyn_divides_threaded(
 
     flint_free(worker_args);
 
+#if HAVE_PTHREAD
     pthread_mutex_destroy(&H->mutex);
+#endif
 
     divides = divides_heap_base_clear(Q, H);
 

@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -27,7 +27,32 @@ main(void)
     flint_printf("scalar_addmul_fmpz....");
     fflush(stdout);
 
-    
+    /* check dirty entries */
+    {
+        fmpz_poly_t a, b;
+	fmpz_t two;
+
+	fmpz_init(two);
+	fmpz_set_ui(two, 2);
+	fmpz_poly_init(a);
+        fmpz_poly_init(b);
+
+        fmpz_poly_one(a);
+        fmpz_poly_zero(a);
+        fmpz_poly_one(b);
+        fmpz_poly_scalar_addmul_fmpz(a, b, two);
+        fmpz_poly_set_fmpz(b, two);
+
+	if (!fmpz_poly_equal(a, b))
+	{
+	    flint_printf("FAIL: dirty\n");
+	    abort();
+	}
+        
+        fmpz_poly_clear(a);
+        fmpz_poly_clear(b);
+	fmpz_clear(two);
+    }	
 
     /* Check aliasing of a and b */
     for (i = 0; i < 1000 * flint_test_multiplier(); i++)

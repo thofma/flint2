@@ -21,7 +21,7 @@ Memory Management
 
 .. function:: void fq_poly_factor_init(fq_poly_factor_t fac, const fq_ctx_t ctx)
 
-    Initialises ``fac`` for use. An ``fq_poly_factor_t``
+    Initialises ``fac`` for use. An :type:`fq_poly_factor_t`
     represents a polynomial in factorised form as a product of
     polynomials with associated exponents.
 
@@ -70,7 +70,7 @@ Basic Operations
 
     Concatenates two factorisations.
 
-    This is equivalent to calling ``fq_poly_factor_insert()``
+    This is equivalent to calling :func:`fq_poly_factor_insert`
     repeatedly with the individual factors of ``fac``.
 
     Does not support aliasing between ``res`` and ``fac``.
@@ -143,15 +143,15 @@ Factorisation
 
 .. function:: void fq_poly_factor_distinct_deg(fq_poly_factor_t res, const fq_poly_t poly, slong * const *degs, const fq_ctx_t ctx)
 
-    Factorises a monic non-constant squarefree polymnomial ``poly``
+    Factorises a monic non-constant squarefree polynomial ``poly``
     of degree n into factors `f[d]` such that for `1 \leq d \leq n`
     `f[d]` is the product of the monic irreducible factors of
     ``poly`` of degree `d`. Factors are stored in ``res``,
-    assotiated powers of irreducible polynomials are stored in
+    associated powers of irreducible polynomials are stored in
     ``degs`` in the same order as factors.
 
     Requires that ``degs`` have enough space for irreducible polynomials'
-    powers (maximum space required is `n * sizeof(slong)`).
+    powers (maximum space required is ``n * sizeof(slong)``).
 
 .. function:: void fq_poly_factor_squarefree(fq_poly_factor_t res, const fq_poly_t f, const fq_ctx_t ctx)
 
@@ -162,7 +162,7 @@ Factorisation
     Factorises a non-constant polynomial ``f`` into monic
     irreducible factors choosing the best algorithm for given modulo
     and degree.  The output ``lead`` is set to the leading coefficient of `f`
-    upon return. Choice of algorithm is based on heuristic measurments.
+    upon return. Choice of algorithm is based on heuristic measurements.
 
 .. function:: void fq_poly_factor_cantor_zassenhaus(fq_poly_factor_t res, const fq_poly_t f, const fq_ctx_t ctx)
 
@@ -193,7 +193,7 @@ Factorisation
     performs a square-free factorisation, and finally runs Berlekamp
     factorisation on all the individual square-free factors.
 
-.. function:: void fq_poly_factor_with_cantor_zassenhaus(fq_poly_factor_t res, fq_t leading_coeff const fq_poly_t f, const fq_ctx_t ctx)
+.. function:: void fq_poly_factor_with_cantor_zassenhaus(fq_poly_factor_t res, fq_t leading_coeff, const fq_poly_t f, const fq_ctx_t ctx)
 
     Factorises a general polynomial ``f`` into monic irreducible
     factors and sets ``leading_coeff`` to the leading coefficient
@@ -217,7 +217,16 @@ Factorisation
 
 .. function:: void fq_poly_iterated_frobenius_preinv(fq_poly_t *rop, slong n, const fq_poly_t v, const fq_poly_t vinv, const fq_ctx_t ctx)
 
-    Sets ``rop[i]`` to be `x^{q^i} mod v` for `0 <= i < n`.
+    Sets ``rop[i]`` to be `x^{q^i}\mod v` for `0 <= i < n`.
 
     It is required that ``vinv`` is the inverse of the reverse of
     ``v`` mod ``x^lenv``.
+
+Root Finding
+--------------------------------------------------------------------------------
+
+.. function:: void fq_poly_roots(fq_poly_factor_t r, const fq_poly_t f, int with_multiplicity, const fq_ctx_t ctx)
+
+    Fill `r` with factors of the form `x - r_i` where the `r_i` are the distinct roots of a nonzero `f` in `F_q`.
+    If `with_multiplicity` is zero, the exponent `e_i` of the factor `x - r_i` is `1`. Otherwise, it is the largest `e_i` such that `(x-r_i)^e_i` divides `f`.
+    This function throws if `f` is zero, but is otherwise always successful.

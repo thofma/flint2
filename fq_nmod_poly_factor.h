@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifndef FQ_NMOD_POLY_FACTOR_H
@@ -44,5 +44,9 @@ int FQ_NMOD_POLY_ITERATED_FROBENIUS_CUTOFF(const fq_nmod_ctx_t ctx, slong length
 #include "fq_poly_factor_templates.h"
 #undef CAP_T
 #undef T
+
+/* Inlines *******************************************************************/
+
+FLINT_DLL void fq_nmod_poly_factor_get_poly(fq_nmod_poly_t z, fq_nmod_poly_factor_t fac, slong i, fq_nmod_ctx_t ctx);
 
 #endif

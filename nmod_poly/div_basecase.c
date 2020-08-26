@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -213,8 +213,15 @@ nmod_poly_div_basecase(nmod_poly_t Q, const nmod_poly_t A,
 
     if (Blen == 0)
     {
-        flint_printf("Exception (nmod_poly_div_base). Division by zero.\n");
-        flint_abort();
+        if (nmod_poly_modulus(B) == 1)
+        {
+           nmod_poly_set(Q, A);
+           return;
+        } else
+        {
+	   flint_printf("Exception (nmod_poly_div_basecase). Division by zero.\n");
+           flint_abort();
+        }
     }
 
     Alen = A->length;

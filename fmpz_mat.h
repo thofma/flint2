@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifndef FMPZ_MAT_H
@@ -357,7 +357,6 @@ FLINT_DLL slong fmpz_mat_fflu(fmpz_mat_t B, fmpz_t den, slong * perm,
                             const fmpz_mat_t A, int rank_check);
 
 FLINT_DLL slong fmpz_mat_rank_small_inplace(fmpz_mat_t B);
-                 
 FLINT_DLL slong fmpz_mat_rref(fmpz_mat_t B, fmpz_t den, const fmpz_mat_t A);
 FLINT_DLL slong fmpz_mat_rref_fflu(fmpz_mat_t B, fmpz_t den, const fmpz_mat_t A);
 FLINT_DLL slong fmpz_mat_rref_mul(fmpz_mat_t B, fmpz_t den, const fmpz_mat_t A);
@@ -477,8 +476,36 @@ FLINT_DLL int fmpz_mat_solve_fflu(fmpz_mat_t X, fmpz_t den,
 FLINT_DLL void fmpz_mat_solve_fflu_precomp(fmpz_mat_t X, const slong * perm,
         const fmpz_mat_t FFLU, const fmpz_mat_t B);
 
+FLINT_DLL mp_limb_t
+fmpz_mat_find_good_prime_and_invert(nmod_mat_t Ainv,
+		                  const fmpz_mat_t A, const fmpz_t det_bound);
+
+FLINT_DLL mp_limb_t *
+fmpz_mat_dixon_get_crt_primes(slong * num_primes,
+		                             const fmpz_mat_t A, mp_limb_t p);
+
+FLINT_DLL void
+_fmpz_mat_solve_dixon(fmpz_mat_t X, fmpz_t mod,
+		  const fmpz_mat_t A, const fmpz_mat_t B,
+			       const nmod_mat_t Ainv, mp_limb_t p,
+		                              const fmpz_t N, const fmpz_t D);
+
 FLINT_DLL int fmpz_mat_solve_dixon(fmpz_mat_t X, fmpz_t mod,
         const fmpz_mat_t A, const fmpz_mat_t B);
+
+FLINT_DLL void
+_fmpz_mat_solve_dixon_den(fmpz_mat_t X, fmpz_t den,
+                     const fmpz_mat_t A, const fmpz_mat_t B,
+                                 const nmod_mat_t Ainv, mp_limb_t p,
+                                              const fmpz_t N, const fmpz_t D);
+
+FLINT_DLL int
+fmpz_mat_solve_dixon_den(fmpz_mat_t X, fmpz_t den,
+		                      const fmpz_mat_t A, const fmpz_mat_t B);
+
+FLINT_DLL int
+fmpz_mat_solve_multi_mod_den(fmpz_mat_t X, fmpz_t den,
+	                              const fmpz_mat_t A, const fmpz_mat_t B);
 
 /* Nullspace ****************************************************************/
 

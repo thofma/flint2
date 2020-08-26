@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -28,18 +28,18 @@ slong _fmpz_mod_poly_gcdinv_f(fmpz_t f, fmpz *G, fmpz *S,
     if (fmpz_is_one(f))
     {
         if (lenB < 16)
-	    {
-		    ans = _fmpz_mod_poly_gcdinv_euclidean_f(f, G, S, 
-			                                         A, lenA, B, lenB, inv, p);
-	    } else
         {
-    		T = _fmpz_vec_init(lenA - 1);
+            ans = _fmpz_mod_poly_gcdinv_euclidean_f(f, G, S, 
+			                               A, lenA, B, lenB, inv, p);
+        } else
+        {
+            T = _fmpz_vec_init(lenA - 1);
     
-	        ans = _fmpz_mod_poly_xgcd_f(f, G, T, S, B, lenB, A, lenA, inv, p);
+            ans = _fmpz_mod_poly_xgcd_f(f, G, T, S, B, lenB, A, lenA, inv, p);
             
-			_fmpz_vec_clear(T, lenA - 1);
+            _fmpz_vec_clear(T, lenA - 1);
         }
-	}
+    }
 	
     fmpz_clear(inv);
 
@@ -102,7 +102,7 @@ void fmpz_mod_poly_gcdinv_f(fmpz_t f, fmpz_mod_poly_t G, fmpz_mod_poly_t S,
         }
 
         lenG = _fmpz_mod_poly_gcdinv_f(f, g, s, 
-            A->coeffs, lenA, B->coeffs, lenB, &A->p);
+                                      A->coeffs, lenA, B->coeffs, lenB, &A->p);
 
         if (G == A || G == B)
         {

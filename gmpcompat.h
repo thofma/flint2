@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -16,7 +16,20 @@
 #ifndef GMP_COMPAT_H
 #define GMP_COMPAT_H
 
-#if (defined(__MINGW64__) || defined(__mips64)) && !defined(__MPIR_VERSION)
+#define FLINT_MPZ_REALLOC(z, len)       \
+    ((len) > ((z)->_mp_alloc)           \
+        ? (mp_ptr) _mpz_realloc(z, len) \
+        : ((z)->_mp_d))
+
+#define FLINT_MPZ_PTR_SWAP(a, b)    \
+  do {                              \
+    mpz_ptr __tmp = (a);            \
+    (a) = (b);                      \
+    (b) = __tmp;                    \
+  } while (0)
+
+
+#if defined(__MINGW64__) && !defined(__MPIR_VERSION)
 
 #define FLINT_MOCK_MPZ_UI(xxx, yyy) \
    __mpz_struct (xxx)[1] = {{ 1, 0, NULL }}; \
@@ -44,6 +57,14 @@
 static __inline__
 void flint_mpz_set_si(mpz_ptr r, slong s)
 {
+   /* GMP 6.2 lazily performs allocation, deal with that if necessary
+      (in older GMP versions, this code is simply never triggered) */
+   if (r->_mp_alloc == 0)
+   {
+      r->_mp_d = (mp_ptr) flint_malloc(sizeof(mp_limb_t));
+      r->_mp_alloc = 1;
+   }
+
    if (s < 0) {
       r->_mp_size = -1;
       r->_mp_d[0] = -s;
@@ -56,6 +77,14 @@ void flint_mpz_set_si(mpz_ptr r, slong s)
 static __inline__
 void flint_mpz_set_ui(mpz_ptr r, ulong u)
 {
+   /* GMP 6.2 lazily performs allocation, deal with that if necessary
+      (in older GMP versions, this code is simply never triggered) */
+   if (r->_mp_alloc == 0)
+   {
+      r->_mp_d = (mp_ptr) flint_malloc(sizeof(mp_limb_t));
+      r->_mp_alloc = 1;
+   }
+
    r->_mp_d[0] = u; 
    r->_mp_size = u != 0;
 }

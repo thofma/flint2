@@ -26,33 +26,33 @@ Modular reduction and arithmetic
     Initialises the given ``nmod_t`` structure for reduction modulo `n`
     with a precomputed inverse.
 
-.. function:: NMOD_RED2(r, a_hi, a_lo, mod)
+.. macro:: NMOD_RED2(r, a_hi, a_lo, mod)
 
     Macro to set `r` to `a` reduced modulo ``mod.n``, where `a` 
     consists of two limbs ``(a_hi, a_lo)``. The ``mod`` parameter 
     must be a valid ``nmod_t`` structure. It is assumed that ``a_hi`` 
     is already reduced modulo ``mod.n``.
 
-.. function:: NMOD_RED(r, a, mod)
+.. macro:: NMOD_RED(r, a, mod)
 
     Macro to set `r` to `a` reduced modulo ``mod.n``. The ``mod`` 
     parameter must be a valid ``nmod_t`` structure.
 
-.. function:: NMOD2_RED2(r, a_hi, a_lo, mod)
+.. macro:: NMOD2_RED2(r, a_hi, a_lo, mod)
 
     Macro to set `r` to `a` reduced modulo ``mod.n``, where `a` 
     consists of two limbs ``(a_hi, a_lo)``. The ``mod`` parameter 
     must be a valid ``nmod_t`` structure. No assumptions are made 
     about ``a_hi``.
 
-.. function:: NMOD_RED3(r, a_hi, a_me, a_lo, mod)
+.. macro:: NMOD_RED3(r, a_hi, a_me, a_lo, mod)
 
     Macro to set `r` to `a` reduced modulo ``mod.n``, where `a` 
     consists of three limbs ``(a_hi, a_me, a_lo)``. The ``mod`` 
     parameter must be a valid ``nmod_t`` structure. It is assumed 
     that ``a_hi`` is already reduced modulo ``mod.n``.
 
-.. function:: NMOD_ADDMUL(r, a, b, mod)
+.. macro:: NMOD_ADDMUL(r, a, b, mod)
 
     Macro to set `r` to `r + ab` reduced modulo ``mod.n``. The 
     ``mod`` parameter must be a valid ``nmod_t`` structure. It is 
@@ -185,7 +185,7 @@ Arithmetic operations
 .. function:: void _nmod_vec_scalar_mul_nmod_shoup(mp_ptr res, mp_srcptr vec, slong len, mp_limb_t c, nmod_t mod)
 
     Sets ``(res, len)`` to ``(vec, len)`` multiplied by `c` using
-    ``n_mulmod_shoup()``. `mod.n` should be less than `2^{\mathtt{FLINT_BITS} - 1}`. `c` 
+    :func:`n_mulmod_shoup`. `mod.n` should be less than `2^{\mathtt{FLINT\_BITS} - 1}`. `c` 
     and all elements of `vec` should be less than `mod.n`.
 
 .. function:: void _nmod_vec_scalar_addmul_nmod(mp_ptr res, mp_srcptr vec, slong len, mp_limb_t c, nmod_t mod)
@@ -240,7 +240,7 @@ Discrete Logarithms via Pohlig-Hellman
 
 .. function:: void nmod_discrete_log_pohlig_hellman_init(nmod_discrete_log_pohlig_hellman_t L)
 
-    Initialize ``L``. Upon initilization ``L`` is not ready for computation.
+    Initialize ``L``. Upon initialization ``L`` is not ready for computation.
 
 .. function:: void nmod_discrete_log_pohlig_hellman_clear(nmod_discrete_log_pohlig_hellman_t L)
 
@@ -257,5 +257,5 @@ Discrete Logarithms via Pohlig-Hellman
 
 .. function:: ulong nmod_discrete_log_pohlig_hellman_run(const nmod_discrete_log_pohlig_hellman_t L, mp_limb_t y)
 
-    Return the logarithm of ``y`` with repect to the internally stored base. ``y`` is expected to be reduced modulo the ``p``.
+    Return the logarithm of ``y`` with respect to the internally stored base. ``y`` is expected to be reduced modulo the ``p``.
     The function is undefined if the logarithm does not exist.

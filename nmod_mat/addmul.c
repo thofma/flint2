@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -32,7 +32,7 @@ nmod_mat_addmul(nmod_mat_t D, const nmod_mat_t C,
 
     if (m < cutoff || n < cutoff || k < cutoff)
     {
-        _nmod_mat_mul_classical(D, C, A, B, 1);
+        _nmod_mat_mul_classical_op(D, C, A, B, 1);
     }
     else
     {

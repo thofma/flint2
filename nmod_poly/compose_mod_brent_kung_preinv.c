@@ -1,13 +1,14 @@
 /*
     Copyright (C) 2011 Fredrik Johansson
     Copyright (C) 2013 Martin Lee
+    Copyright (C) 2020 William Hart
 
     This file is part of FLINT.
 
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -59,11 +60,8 @@ _nmod_poly_compose_mod_brent_kung_preinv(mp_ptr res, mp_srcptr poly1, slong len1
     _nmod_vec_set(B->rows[i], poly1 + i*m, len1 % m);
 
     /* Set rows of A to powers of poly2 */
-    A->rows[0][0] = UWORD(1);
-    _nmod_vec_set(A->rows[1], poly2, n);
-    for (i = 2; i < m; i++)
-        _nmod_poly_mulmod_preinv(A->rows[i], A->rows[i-1],
-            n, poly2, n, poly3, len3, poly3inv, len3inv, mod);
+    _nmod_poly_powers_mod_preinv_naive(A->rows, poly2, n,
+	                 m, poly3, len3, poly3inv, len3inv, mod);
 
     nmod_mat_mul(C, B, A);
 

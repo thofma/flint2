@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdlib.h>
@@ -22,5 +22,6 @@ nmod_mat_clear(nmod_mat_t mat)
     {
         flint_free(mat->entries);
         flint_free(mat->rows);
-    }
+    } else if (mat->r != 0)
+        flint_free(mat->rows);
 }

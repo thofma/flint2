@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -97,6 +97,20 @@ int main(void)
 
     fmpz_init(x);
     mpz_init(y1);
+
+    /* Fredrik's example */
+#if FLINT64
+    fmpz_set_ui(x, 3);
+    fmpz_mul_ui(x, x, 73);
+    fmpz_mul_ui(x, x, 137);
+    fmpz_mul_ui(x, x, 1676321);
+    fmpz_mul_ui(x, x, 1676321);
+    fmpz_mul_ui(x, x, 1676321);
+    fmpz_mul_ui(x, x, 5964848081);
+    fmpz_mul_ui(x, x, 78875943472201);
+    fmpz_mul_ui(x, x, 78875943472201);
+    check(x);
+#endif
 
     /* Some corner cases */
     fmpz_set_ui(x, UWORD_MAX);
@@ -277,7 +291,6 @@ int main(void)
           flint_printf("%ld factors found\n", factors->num);
           abort();
        }
-
        fmpz_factor_clear(factors);
     }
 

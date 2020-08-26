@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "string.h"
@@ -31,7 +31,9 @@ _chunk_struct;
 
 typedef struct
 {
+#if HAVE_PTHREAD
     pthread_mutex_t mutex;
+#endif
     volatile int idx;
     slong nthreads;
     slong Al, Bl, Pl;
@@ -85,10 +87,14 @@ static void _nmod_mpoly_mul_array_threaded_worker_LEX(void * varg)
     for (j = 0; j < 3*base->array_size; j++)
         coeff_array[j] = 0;
 
+#if HAVE_PTHREAD
     pthread_mutex_lock(&base->mutex);
+#endif
     Pi = base->idx;
     base->idx = Pi + 1;
+#if HAVE_PTHREAD
     pthread_mutex_unlock(&base->mutex);
+#endif
 
     while (Pi < Pl)
     {
@@ -187,10 +193,14 @@ static void _nmod_mpoly_mul_array_threaded_worker_LEX(void * varg)
                     base->array_size, Pl - Pi - 1, base->ctx);
         }
 
+#if HAVE_PTHREAD
         pthread_mutex_lock(&base->mutex);
-        Pi = base->idx;
+#endif
+	Pi = base->idx;
         base->idx = Pi + 1;
+#if HAVE_PTHREAD
         pthread_mutex_unlock(&base->mutex);
+#endif
     }
 
     TMP_END;
@@ -289,12 +299,14 @@ void _nmod_mpoly_mul_array_chunked_threaded_LEX(
     args = (_worker_arg_struct *) TMP_ALLOC(base->nthreads
                                                   *sizeof(_worker_arg_struct));
 
+#if HAVE_PTHREAD
     pthread_mutex_init(&base->mutex, NULL);
+#endif
     for (i = 0; i < num_handles; i++)
     {
         args[i].idx = i;
         args[i].base = base;
-        thread_pool_wake(global_thread_pool, handles[i],
+        thread_pool_wake(global_thread_pool, handles[i], 0,
                           _nmod_mpoly_mul_array_threaded_worker_LEX, &args[i]);
     }
     i = num_handles;
@@ -305,7 +317,9 @@ void _nmod_mpoly_mul_array_chunked_threaded_LEX(
     {
         thread_pool_wait(global_thread_pool, handles[i]);
     }
+#if HAVE_PTHREAD
     pthread_mutex_destroy(&base->mutex);
+#endif
 
     /* join answers */
     Plen = 0;
@@ -334,7 +348,7 @@ void _nmod_mpoly_mul_array_chunked_threaded_LEX(
 }
 
 
-int _nmod_mpoly_mul_array_threaded_LEX(
+int _nmod_mpoly_mul_array_threaded_pool_LEX(
     nmod_mpoly_t A,
     const nmod_mpoly_t B, fmpz * maxBfields,
     const nmod_mpoly_t C, fmpz * maxCfields,
@@ -466,10 +480,14 @@ static void _nmod_mpoly_mul_array_threaded_worker_DEG(void * varg)
     for (j = 0; j < 3*base->array_size; j++)
         coeff_array[j] = 0;
 
+#if HAVE_PTHREAD
     pthread_mutex_lock(&base->mutex);
+#endif
     Pi = base->idx;
     base->idx = Pi + 1;
+#if HAVE_PTHREAD
     pthread_mutex_unlock(&base->mutex);
+#endif
 
     while (Pi < Pl)
     {
@@ -558,10 +576,14 @@ static void _nmod_mpoly_mul_array_threaded_worker_DEG(void * varg)
                        coeff_array, Pl - Pi - 1, base->nvars, base->degb, base->ctx);
         }
 
-        pthread_mutex_lock(&base->mutex);
+#if HAVE_PTHREAD
+	pthread_mutex_lock(&base->mutex);
+#endif
         Pi = base->idx;
         base->idx = Pi + 1;
+#if HAVE_PTHREAD
         pthread_mutex_unlock(&base->mutex);
+#endif
     }
 
     TMP_END;
@@ -664,13 +686,15 @@ void _nmod_mpoly_mul_array_chunked_threaded_DEG(
     args = (_worker_arg_struct *) TMP_ALLOC(base->nthreads
                                                   *sizeof(_worker_arg_struct));
 
+#if HAVE_PTHREAD
     pthread_mutex_init(&base->mutex, NULL);
+#endif
     for (i = 0; i < num_handles; i++)
     {
         args[i].idx = i;
         args[i].base = base;
 
-        thread_pool_wake(global_thread_pool, handles[i],
+        thread_pool_wake(global_thread_pool, handles[i], 0,
                           _nmod_mpoly_mul_array_threaded_worker_DEG, &args[i]);
     }
     i = num_handles;
@@ -681,7 +705,9 @@ void _nmod_mpoly_mul_array_chunked_threaded_DEG(
     {
         thread_pool_wait(global_thread_pool, handles[i]);
     }
+#if HAVE_PTHREAD
     pthread_mutex_destroy(&base->mutex);
+#endif
 
     /* join answers */
     Plen = 0;
@@ -709,7 +735,7 @@ void _nmod_mpoly_mul_array_chunked_threaded_DEG(
     TMP_END;
 }
 
-int _nmod_mpoly_mul_array_threaded_DEG(
+int _nmod_mpoly_mul_array_threaded_pool_DEG(
     nmod_mpoly_t A,
     const nmod_mpoly_t B, fmpz * maxBfields,
     const nmod_mpoly_t C, fmpz * maxCfields,
@@ -795,14 +821,14 @@ int nmod_mpoly_mul_array_threaded(
     nmod_mpoly_t A,
     const nmod_mpoly_t B,
     const nmod_mpoly_t C,
-    const nmod_mpoly_ctx_t ctx,
-    slong thread_limit)
+    const nmod_mpoly_ctx_t ctx)
 {
     slong i;
     int success;
     fmpz * maxBfields, * maxCfields;
     thread_pool_handle * handles;
     slong num_handles;
+    slong thread_limit = FLINT_MIN(B->length, C->length)/16;
     TMP_INIT;
 
     if (B->length == 0 || C->length == 0)
@@ -811,9 +837,8 @@ int nmod_mpoly_mul_array_threaded(
         return 1;
     }
 
-    if (  1 != mpoly_words_per_exp(B->bits, ctx->minfo)
-       || 1 != mpoly_words_per_exp(C->bits, ctx->minfo)
-       )
+    if (1 != mpoly_words_per_exp(B->bits, ctx->minfo) ||
+        1 != mpoly_words_per_exp(C->bits, ctx->minfo))
     {
         return 0;
     }
@@ -830,34 +855,20 @@ int nmod_mpoly_mul_array_threaded(
     mpoly_max_fields_fmpz(maxBfields, B->exps, B->length, B->bits, ctx->minfo);
     mpoly_max_fields_fmpz(maxCfields, C->exps, C->length, C->bits, ctx->minfo);
 
-    handles = NULL;
-    num_handles = 0;
-    if (global_thread_pool_initialized)
-    {
-        slong max_num_handles;
-        max_num_handles = thread_pool_get_size(global_thread_pool);
-        max_num_handles = FLINT_MIN(thread_limit - 1, max_num_handles);
-        if (max_num_handles > 0)
-        {
-            handles = (thread_pool_handle *) flint_malloc(
-                                   max_num_handles*sizeof(thread_pool_handle));
-            num_handles = thread_pool_request(global_thread_pool,
-                                                     handles, max_num_handles);
-        }
-    }
+    num_handles = flint_request_threads(&handles, thread_limit);
 
     switch (ctx->minfo->ord)
     {
         case ORD_LEX:
         {
-            success = _nmod_mpoly_mul_array_threaded_LEX(A,
+            success = _nmod_mpoly_mul_array_threaded_pool_LEX(A,
                       B, maxBfields, C, maxCfields, ctx, handles, num_handles);
             break;
         }
         case ORD_DEGREVLEX:
         case ORD_DEGLEX:
         {
-            success = _nmod_mpoly_mul_array_threaded_DEG(A,
+            success = _nmod_mpoly_mul_array_threaded_pool_DEG(A,
                       B, maxBfields, C, maxCfields, ctx, handles, num_handles);
             break;
         }
@@ -868,14 +879,7 @@ int nmod_mpoly_mul_array_threaded(
         }
     }
 
-    for (i = 0; i < num_handles; i++)
-    {
-        thread_pool_give_back(global_thread_pool, handles[i]);
-    }
-    if (handles)
-    {
-        flint_free(handles);
-    }
+    flint_give_back_threads(handles, num_handles);
 
     for (i = 0; i < ctx->minfo->nfields; i++)
     {

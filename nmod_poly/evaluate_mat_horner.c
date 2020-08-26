@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -44,7 +44,7 @@ nmod_mat_one_addmul(nmod_mat_t dest, const nmod_mat_t mat, mp_limb_t c)
 }
 
 void
-_nmod_poly_evaluate_mat_horner(nmod_mat_t dest, const mp_srcptr poly, slong len, const nmod_mat_t c)
+_nmod_poly_evaluate_mat_horner(nmod_mat_t dest, mp_srcptr poly, slong len, const nmod_mat_t c)
 {
     slong m = len-1;
     nmod_mat_t temp;

@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -31,7 +31,7 @@ main(void)
     /* Check aliasing of a and b */
     for (i = 0; i < 1000 * flint_test_multiplier(); i++)
     {
-        mpfr *a;
+        flint_mpfr *a;
         slong len = n_randint(state, 100);
 
         a = _mpfr_vec_init(len, 200);
@@ -52,7 +52,7 @@ main(void)
     /* Compare copied vectors */
     for (i = 0; i < 1000 * flint_test_multiplier(); i++)
     {
-        mpfr *a, *b;
+        flint_mpfr *a, *b;
         slong len = n_randint(state, 100);
 
         a = _mpfr_vec_init(len, 200);
@@ -75,7 +75,7 @@ main(void)
     /* Compare unequal vectors */
     for (i = 0; i < 1000 * flint_test_multiplier(); i++)
     {
-        mpfr *a, *b;
+        flint_mpfr *a, *b;
         slong len = n_randint(state, 100) + 1;
         slong coeff;
 

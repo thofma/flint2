@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <gmp.h>
@@ -36,8 +36,8 @@ fmpz_factor_ecm_mul_montgomery_ladder(mp_ptr x, mp_ptr z, mp_ptr x0, mp_ptr z0,
 
     if (k == 1)
     {
-        mpn_copyi(x, x0, ecm_inf->n_size);
-        mpn_copyi(z, z0, ecm_inf->n_size);
+        flint_mpn_copyi(x, x0, ecm_inf->n_size);
+        flint_mpn_copyi(z, z0, ecm_inf->n_size);
         return;
     }
     
@@ -48,8 +48,8 @@ fmpz_factor_ecm_mul_montgomery_ladder(mp_ptr x, mp_ptr z, mp_ptr x0, mp_ptr z0,
     z2 = TMP_ALLOC(ecm_inf->n_size * sizeof(mp_limb_t));
 
 
-    mpn_copyi(x1, x0, ecm_inf->n_size);    /* Q <- P0 */
-    mpn_copyi(z1, z0, ecm_inf->n_size);
+    flint_mpn_copyi(x1, x0, ecm_inf->n_size);    /* Q <- P0 */
+    flint_mpn_copyi(z1, z0, ecm_inf->n_size);
     mpn_zero(x2, ecm_inf->n_size);
     mpn_zero(z2, ecm_inf->n_size);
 
@@ -80,8 +80,8 @@ fmpz_factor_ecm_mul_montgomery_ladder(mp_ptr x, mp_ptr z, mp_ptr x0, mp_ptr z0,
             len -= 1;
     }
 
-    mpn_copyi(x, x1, ecm_inf->n_size);
-    mpn_copyi(z, z1, ecm_inf->n_size);
+    flint_mpn_copyi(x, x1, ecm_inf->n_size);
+    flint_mpn_copyi(z, z1, ecm_inf->n_size);
 
     TMP_END;
 }

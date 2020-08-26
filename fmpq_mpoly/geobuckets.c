@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include "fmpq_mpoly.h"
@@ -206,7 +206,8 @@ void fmpq_mpoly_geobucket_pow_fmpz_inplace(fmpq_mpoly_geobucket_t B1,
     fmpq_mpoly_init(a, ctx);
 
     fmpq_mpoly_geobucket_empty(a, B1, ctx);
-    fmpq_mpoly_pow_fmpz(a, a, k, ctx);
+    if (!fmpq_mpoly_pow_fmpz(a, a, k, ctx))
+        flint_throw(FLINT_ERROR, "fmpq_mpoly_pow_fmpz failed");
     fmpq_mpoly_geobucket_set(B1, a, ctx);
 
     fmpq_mpoly_clear(a, ctx);

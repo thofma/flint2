@@ -7,7 +7,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -151,12 +151,54 @@ main(void)
             abort();
         }
 
+        for (j = 0; j < fac->num; j++)
+        {
+            for (k = j + 1; k < fac->num; k++)
+            {
+                if (fmpz_poly_equal(fac->p + j, fac->p + k))
+                {
+                    flint_printf("FAIL (repeated factor):\n");
+                    flint_printf("facs1 = %wd, facs2 = %wd\n", facs1, facs2);
+                    flint_printf("f = "), fmpz_poly_print(f), flint_printf("\n\n");
+                    flint_printf("h = "), fmpz_poly_print(h), flint_printf("\n\n");
+                    flint_printf("fac = "), fmpz_poly_factor_print(fac), flint_printf("\n\n");
+                    abort();
+                }
+            }
+
+            fmpz_poly_content(c, fac->p + j);
+            if (!fmpz_is_one(c) || fmpz_sgn((fac->p + j)->coeffs + fmpz_poly_degree(fac->p + j)) < 0)
+            {
+                flint_printf("FAIL (factor not reduced):\n");
+                flint_printf("facs1 = %wd, facs2 = %wd\n", facs1, facs2);
+                flint_printf("f = "), fmpz_poly_print(f), flint_printf("\n\n");
+                flint_printf("h = "), fmpz_poly_print(h), flint_printf("\n\n");
+                flint_printf("fac = "), fmpz_poly_factor_print(fac), flint_printf("\n\n");
+                abort();
+            }
+        }
+
         fmpz_clear(c);
         fmpz_poly_clear(f);
         fmpz_poly_clear(g);
         fmpz_poly_clear(h);
         fmpz_poly_clear(t);
         fmpz_poly_factor_clear(fac);
+    }
+
+    /* Regression test: #783 */
+    {
+        fmpz_poly_t a;
+        fmpz_poly_factor_t f;
+        fmpz_poly_init(a);
+        
+        fmpz_poly_set_str(a, "31  294114975 822759704 601207031 3459410600 6329635407 5561735376 2870497527 -364079376 -984488613 -2855108728 -5168185293 -2678402184 -3199593893 -2740409376 -1003657917 -549998688 -252445155 -80724312 -19101979 -28418280 -2087859 -9732528 -2615547 -159120 -148311 -4680 -1359 2504 73 0 1");
+        
+        fmpz_poly_factor_init(f);
+        fmpz_poly_factor(f, a);
+        
+        fmpz_poly_factor_clear(f);
+        fmpz_poly_clear(a);
     }
 
     FLINT_TEST_CLEANUP(state);

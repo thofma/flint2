@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #include <stdio.h>
@@ -20,7 +20,7 @@ void p_is_prime_repeat(fmpz_t * ns, int len)
 
     TIMEIT_START
     for (i = 0; i < len; i++)
-            if (is_prime_aprcl(ns[i]) == 0)
+            if (aprcl_is_prime(ns[i]) == 0)
             {
                 flint_printf("Primality test failed\n");
                 abort();

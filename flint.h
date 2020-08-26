@@ -6,7 +6,7 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 #ifndef FLINT_H
@@ -31,7 +31,7 @@
 #endif
 #include "limits.h"
 #include "longlong.h"
-#include "config.h"
+#include "flint-config.h"
 #undef ulong
 
 #ifdef FLINT_INLINES_C
@@ -55,9 +55,9 @@
 /* flint version number */
 
 #define __FLINT_VERSION 2
-#define __FLINT_VERSION_MINOR 5
+#define __FLINT_VERSION_MINOR 6
 #define __FLINT_VERSION_PATCHLEVEL 3
-#define FLINT_VERSION "2.5.3"
+#define FLINT_VERSION "2.6.3"
 #define __FLINT_RELEASE (__FLINT_VERSION * 10000 + \
                          __FLINT_VERSION_MINOR * 100 + \
                          __FLINT_VERSION_PATCHLEVEL)
@@ -82,7 +82,7 @@
     #define __inline__  inline
 #endif
 
-extern char version[];
+extern char flint_version[];
 
 #define ulong mp_limb_t
 #define slong mp_limb_signed_t
@@ -101,8 +101,14 @@ FLINT_DLL void __flint_set_memory_functions(void *(*alloc_func) (size_t),
      void *(*calloc_func) (size_t, size_t), void *(*realloc_func) (void *, size_t),
                                                               void (*free_func) (void *));
 
-FLINT_DLL void flint_abort(void);
-FLINT_DLL void flint_set_abort(void (*func)(void));
+#ifdef __GNUC__
+#define FLINT_NORETURN __attribute__ ((noreturn))
+#else
+#define FLINT_NORETURN
+#endif
+
+FLINT_DLL FLINT_NORETURN void flint_abort(void);
+FLINT_DLL void flint_set_abort(FLINT_NORETURN void (*func)(void));
   /* flint_abort is calling abort by default
    * if flint_set_abort is used, then instead of abort this function
    * is called. EXPERIMENTALLY use at your own risk!
@@ -120,19 +126,23 @@ FLINT_DLL void flint_set_abort(void (*func)(void));
 #endif
 #define WORD(xx) (xx##LL)
 #define UWORD(xx) (xx##ULL)
+#ifndef FLINT_NO_WORDMAC
 #define UWORD_MAX ULLONG_MAX
 #define UWORD_MIN ULLONG_MIN
 #define WORD_MAX LLONG_MAX
 #define WORD_MIN LLONG_MIN
+#endif
 #else
 #define WORD_FMT "%l"
 #define WORD_WIDTH_FMT "%*l"
 #define WORD(xx) (xx##L)
 #define UWORD(xx) (xx##UL)
+#ifndef FLINT_NO_WORDMAC
 #define UWORD_MAX ULONG_MAX
 #define UWORD_MIN ULONG_MIN
 #define WORD_MAX LONG_MAX
 #define WORD_MIN LONG_MIN
+#endif
 #endif
 
 #if GMP_LIMB_BITS == 64
@@ -160,19 +170,13 @@ FLINT_DLL void flint_set_abort(void (*func)(void));
 #define FLINT_TLS_PREFIX
 #endif
 
-#ifdef _OPENMP
-#define FLINT_PREFER_OMP 1
-#elif HAVE_PTHREAD
-#define FLINT_PREFER_OMP 0
-#else
-#define FLINT_PREFER_OMP 1
-#endif
-
 FLINT_DLL int flint_get_num_threads(void);
 FLINT_DLL void flint_set_num_threads(int num_threads);
+FLINT_DLL void _flint_set_num_workers(int num_workers);
+FLINT_DLL int flint_set_num_workers(int num_workers);
+FLINT_DLL void flint_reset_num_workers(int max_workers);
 FLINT_DLL int flint_set_thread_affinity(int * cpus, slong length);
 FLINT_DLL int flint_restore_thread_affinity();
-FLINT_DLL void flint_parallel_cleanup(void);
 
 int flint_test_multiplier(void);
 
@@ -261,7 +265,7 @@ void flint_rand_free(flint_rand_s * state)
 /*
   We define this here as there is no mpfr.h
  */
-typedef __mpfr_struct mpfr;
+typedef __mpfr_struct flint_mpfr;
 
 #if WANT_ASSERT
 #define FLINT_ASSERT(param) assert(param)
@@ -272,9 +276,16 @@ typedef __mpfr_struct mpfr;
 #if defined(__GNUC__)
 #define FLINT_UNUSED(x) UNUSED_ ## x __attribute__((unused))
 #define FLINT_SET_BUT_UNUSED(x) x __attribute__((unused))
+#if __GNUC__ >= 4
+#define FLINT_WARN_UNUSED __attribute__((warn_unused_result))
 #else
+#define FLINT_WARN_UNUSED
+#endif
+#else
+#define __attribute__(x)
 #define FLINT_UNUSED(x) x
 #define FLINT_SET_BUT_UNUSED(x) x
+#define FLINT_WARN_UNUSED
 #endif
 
 #define FLINT_MAX(x, y) ((x) > (y) ? (x) : (y))
@@ -300,10 +311,11 @@ typedef __mpfr_struct mpfr;
 FLINT_DLL extern const unsigned char __flint_clz_tab[128];
 #endif
 
+/* Beware when using the unsigned return value in signed arithmetic */
 static __inline__
-unsigned int FLINT_BIT_COUNT(mp_limb_t x)
+mp_limb_t FLINT_BIT_COUNT(mp_limb_t x)
 {
-   unsigned int zeros = FLINT_BITS;
+   mp_limb_t zeros = FLINT_BITS;
    if (x) count_leading_zeros(zeros, x);
    return FLINT_BITS - zeros;
 }
@@ -434,6 +446,19 @@ FLINT_DLL int flint_sprintf(char * s, const char * str, ...); /* flint version o
 FLINT_DLL int flint_scanf(const char * str, ...); /* flint version of scanf */
 FLINT_DLL int flint_fscanf(FILE * f, const char * str, ...); /* flint version of fscanf */
 FLINT_DLL int flint_sscanf(const char * s, const char * str, ...); /* flint version of sscanf */
+
+FLINT_INLINE slong flint_mul_sizes(slong x, slong y)
+{
+    ulong hi, lo;
+
+    umul_ppmm(hi, lo, (ulong) x, (ulong) y);
+    if (hi != 0 || lo > WORD_MAX)
+    {
+        flint_printf("Exception (flint). Overflow creating size %wd x %wd object.\n", x, y);
+        flint_abort();
+    }
+    return lo;
+}
 
 #include "gmpcompat.h"
 #include "exception.h"

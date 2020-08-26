@@ -6,12 +6,12 @@
     FLINT is free software: you can redistribute it and/or modify it under
     the terms of the GNU Lesser General Public License (LGPL) as published
     by the Free Software Foundation; either version 2.1 of the License, or
-    (at your option) any later version.  See <http://www.gnu.org/licenses/>.
+    (at your option) any later version.  See <https://www.gnu.org/licenses/>.
 */
 
 /* This is an implementation of the pollard rho algorithm, with a more efficient
    cycle finding algorithm, as proposed by Richard Brent. Details can be found 
-   in the paper http://maths-people.anu.edu.au/~brent/pd/rpb051i.pdf, pseudocode 
+   in the paper https://maths-people.anu.edu.au/~brent/pd/rpb051i.pdf, pseudocode 
    is available on page 182 of the same paper */
 
 #include <gmp.h>
@@ -68,7 +68,7 @@ fmpz_factor_pollard_brent(fmpz_t p_factor, flint_rand_t state, fmpz_t n_in,
     if (normbits)
         mpn_lshift(n, temp, n_size, normbits);
     else
-        mpn_copyi(n, temp, n_size);
+        flint_mpn_copyi(n, temp, n_size);
 
     flint_mpn_preinvn(ninv, n, n_size);
 
@@ -91,16 +91,16 @@ fmpz_factor_pollard_brent(fmpz_t p_factor, flint_rand_t state, fmpz_t n_in,
             if ((!COEFF_IS_MPZ(*fy)))
             {
                 y[0] = fmpz_get_ui(fy);
-                cy = mpn_lshift(y, y, 1, normbits);
+		cy = mpn_lshift(y, y, 1, normbits);
                 if (cy)
-                    y[1] = cy;
+                   y[1] = cy;
             }
             else
             {
                 mpz_ptr = COEFF_TO_PTR(*fy);
                 temp = mpz_ptr->_mp_d;
                 size = mpz_ptr->_mp_size;
-                cy = mpn_lshift(y, temp, size, normbits);
+		cy = mpn_lshift(y, temp, size, normbits);
                 if (cy)
                     y[size] = cy;
             }
@@ -108,7 +108,7 @@ fmpz_factor_pollard_brent(fmpz_t p_factor, flint_rand_t state, fmpz_t n_in,
             if ((!COEFF_IS_MPZ(*fa)))
             {
                 a[0] = fmpz_get_ui(fa);
-                cy = mpn_lshift(a, a, 1, normbits);
+		cy = mpn_lshift(a, a, 1, normbits);
                 if (cy)
                     a[1] = cy;
             }
@@ -117,7 +117,7 @@ fmpz_factor_pollard_brent(fmpz_t p_factor, flint_rand_t state, fmpz_t n_in,
                 mpz_ptr = COEFF_TO_PTR(*fa);
                 temp = mpz_ptr->_mp_d;
                 size = mpz_ptr->_mp_size;
-                cy = mpn_lshift(a, temp, size, normbits);
+		cy = mpn_lshift(a, temp, size, normbits);
                 if (cy)
                     a[size] = cy;
             }
@@ -125,9 +125,9 @@ fmpz_factor_pollard_brent(fmpz_t p_factor, flint_rand_t state, fmpz_t n_in,
         else
         {
             temp = COEFF_TO_PTR(*fy)->_mp_d;
-            mpn_copyi(y, temp, n_size);
+            flint_mpn_copyi(y, temp, n_size);
             temp = COEFF_TO_PTR(*fa)->_mp_d;
-            mpn_copyi(a, temp, n_size);
+            flint_mpn_copyi(a, temp, n_size);
         }
 
         ret = flint_mpn_factor_pollard_brent_single(fac->_mp_d, n, ninv, a, y, n_size, normbits, max_iters);
@@ -143,6 +143,7 @@ fmpz_factor_pollard_brent(fmpz_t p_factor, flint_rand_t state, fmpz_t n_in,
     fmpz_clear(fa);
     fmpz_clear(fy);
     fmpz_clear(maxa);
+    fmpz_clear(maxy);
 
     TMP_END;
     
